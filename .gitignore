@@ -29,6 +29,4 @@ yarn-error.log*
 .idea/
 .vscode/
 *.swp
-*.swo
-
-node_modules/@next/swc-win32-x64-msvc/next-swc.win32-x64-msvc.node 
+*.swo 
