@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FlipWords } from "@/components/ui/flip-words";
 import { useRouter } from 'next/navigation';
+import { authenticateUser } from "@/lib/auth";
 
 export default function LoginHero() {
   const [showLogin, setShowLogin] = useState(false);
@@ -15,11 +16,23 @@ export default function LoginHero() {
     e.preventDefault();
     setError('');
 
-    if (studentId && password) {
-      // TODO: Implement actual authentication logic here
-      router.push('/');
-    } else {
+    if (!studentId || !password) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const user = await authenticateUser(studentId, password);
+      
+      if (user) {
+        // In a real application, you would store the user session here
+        router.push('/calendar');
+      } else {
+        setError('Invalid student ID or password');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('An error occurred during login');
     }
   };
 

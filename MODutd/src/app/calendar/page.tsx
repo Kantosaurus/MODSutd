@@ -2,13 +2,13 @@
 
 import React from 'react'
 import Navigation from '@/components/navigation'
-import LoginHero from '@/components/login-hero'
+import Dashboard from '@/components/dashboard'
 
-export default function Home() {
+export default function CalendarPage() {
   return (
     <main className="min-h-screen">
       <Navigation />
-      <LoginHero />
+      <Dashboard />
     </main>
   )
 } 

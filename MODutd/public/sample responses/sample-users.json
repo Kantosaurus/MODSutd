@@ -1,0 +1,49 @@
+{
+  "users": [
+    {
+      "id": "1004561",
+      "studentId": "1004561",
+      "password": "password123",
+      "name": "John Doe",
+      "pillar": "ASD",
+      "year": 2,
+      "term": 4
+    },
+    {
+      "id": "1004562",
+      "studentId": "1004562",
+      "password": "password123",
+      "name": "Jane Smith",
+      "pillar": "EPD",
+      "year": 3,
+      "term": 5
+    },
+    {
+      "id": "1004563",
+      "studentId": "1004563",
+      "password": "password123",
+      "name": "Alex Johnson",
+      "pillar": "ESD",
+      "year": 1,
+      "term": 2
+    },
+    {
+      "id": "1004564",
+      "studentId": "1004564",
+      "password": "password123",
+      "name": "Sarah Williams",
+      "pillar": "ISTD",
+      "year": 4,
+      "term": 7
+    },
+    {
+      "id": "1004565",
+      "studentId": "1004565",
+      "password": "password123",
+      "name": "Michael Brown",
+      "pillar": "ASD",
+      "year": "M.Arch",
+      "term": 9
+    }
+  ]
+} 
