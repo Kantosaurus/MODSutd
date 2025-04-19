@@ -6,8 +6,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MODutd - Module Planning for UTD Students',
-  description: 'Plan your UTD modules efficiently with MODutd. Get smart scheduling, track your progress, and make informed decisions about your academic journey.',
+  title: 'MODutd - Module Planning for SUTD Students',
+  description: 'Plan your SUTD modules efficiently with MODutd. Get smart scheduling, track your progress, and make informed decisions about your academic journey.',
 }
 
 export default function RootLayout({
