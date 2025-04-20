@@ -137,6 +137,12 @@ export default function SignupPage() {
           <DotLottieReact
             src="https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.lottie"
             autoplay
+            onComplete={() => {
+              setTimeout(() => {
+                setShowAnimation(false)
+                setShowGreeting(true)
+              }, 500)
+            }}
             style={{ pointerEvents: 'none' }}
           />
         </div>
