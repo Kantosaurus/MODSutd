@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import dynamic from 'next/dynamic'
+import successAnimation from './Animation - 1745165256271.json'
 
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 
@@ -25,9 +26,6 @@ export default function SignupPage() {
   const studentIdRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
-
-  const [animationData, setAnimationData] = useState(null)
-  const [isLoadingAnimation, setIsLoadingAnimation] = useState(false)
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,31 +124,6 @@ export default function SignupPage() {
     setCurrentStep(step)
   }
 
-  useEffect(() => {
-    const loadAnimation = async () => {
-      setIsLoadingAnimation(true)
-      try {
-        const response = await fetch('https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.json')
-        if (!response.ok) {
-          throw new Error('Failed to fetch animation')
-        }
-        const data = await response.json()
-        setAnimationData(data)
-      } catch (error) {
-        console.error('Error loading animation:', error)
-        // Fallback to a simple success message if animation fails
-        setShowAnimation(false)
-        setShowGreeting(true)
-      } finally {
-        setIsLoadingAnimation(false)
-      }
-    }
-
-    if (showAnimation) {
-      loadAnimation()
-    }
-  }, [showAnimation])
-
   if (showAnimation) {
     return (
       <motion.div
@@ -160,28 +133,18 @@ export default function SignupPage() {
         className="min-h-screen flex items-center justify-center bg-gray-50"
       >
         <div className="w-64 h-64">
-          {isLoadingAnimation ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            </div>
-          ) : animationData ? (
-            <Lottie
-              animationData={animationData}
-              loop={false}
-              autoplay
-              onComplete={() => {
-                setTimeout(() => {
-                  setShowAnimation(false)
-                  setShowGreeting(true)
-                }, 500)
-              }}
-              style={{ pointerEvents: 'none' }}
-            />
-          ) : (
-            <div className="text-center">
-              <p className="text-gray-600">Loading animation...</p>
-            </div>
-          )}
+          <Lottie
+            animationData={successAnimation}
+            loop={false}
+            autoplay
+            onComplete={() => {
+              setTimeout(() => {
+                setShowAnimation(false)
+                setShowGreeting(true)
+              }, 500)
+            }}
+            style={{ pointerEvents: 'none' }}
+          />
         </div>
       </motion.div>
     )
@@ -214,7 +177,7 @@ export default function SignupPage() {
               className="text-3xl font-extrabold text-gray-900 space-y-2"
             >
               <div>Hello {name}!</div>
-              <div>We're pleased to have you onboard!</div>
+              <div className="whitespace-nowrap">We're pleased to have you onboard!</div>
             </motion.h2>
             <motion.p 
               initial={{ y: 20, opacity: 0 }}
