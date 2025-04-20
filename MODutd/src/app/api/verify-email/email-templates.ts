@@ -84,7 +84,7 @@ export function generateVerificationEmailTemplate(studentId: string, verificatio
           </div>
 
           <div style="text-align: center;">
-            <a href="${appUrl}/verify?token=${verificationToken}" class="verify-button">
+            <a href="${appUrl}/verify?token=${verificationToken}" class="verify-button" style="display: inline-block; background: #2563EB; color: #FFFFFF !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 24px 0; text-align: center; transition: background-color 0.2s ease;">
               Verify Email Address
             </a>
           </div>
