@@ -174,7 +174,7 @@ export default function SignupPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-3xl font-extrabold text-gray-900 space-y-2"
+              className="text-3xl font-extrabold text-gray-900 space-y-2 text-center"
             >
               <div>Hello {name}!</div>
               <div className="whitespace-nowrap">We're pleased to have you onboard!</div>
