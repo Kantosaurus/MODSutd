@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { DotLottieReact } from '@lottiefiles/dotlottie-react'
+import Lottie from 'lottie-react'
 
 export default function SignupPage() {
   const [name, setName] = useState('')
@@ -23,6 +23,8 @@ export default function SignupPage() {
   const studentIdRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
+
+  const [animationData, setAnimationData] = useState(null)
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -114,16 +116,12 @@ export default function SignupPage() {
   }
 
   useEffect(() => {
-    if (showAnimation) {
-      // Animation duration is approximately 3 seconds
-      const timer = setTimeout(() => {
-        setShowAnimation(false)
-        setShowGreeting(true)
-      }, 3000) // 3 seconds for the animation to complete
-
-      return () => clearTimeout(timer)
-    }
-  }, [showAnimation])
+    // Fetch the Lottie JSON data
+    fetch('https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.json')
+      .then(response => response.json())
+      .then(data => setAnimationData(data))
+      .catch(error => console.error('Error loading animation:', error))
+  }, [])
 
   if (showAnimation) {
     return (
@@ -134,17 +132,20 @@ export default function SignupPage() {
         className="min-h-screen flex items-center justify-center bg-gray-50"
       >
         <div className="w-64 h-64">
-          <DotLottieReact
-            src="https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.lottie"
-            autoplay
-            onComplete={() => {
-              setTimeout(() => {
-                setShowAnimation(false)
-                setShowGreeting(true)
-              }, 500)
-            }}
-            style={{ pointerEvents: 'none' }}
-          />
+          {animationData && (
+            <Lottie
+              animationData={animationData}
+              loop={false}
+              autoplay
+              onComplete={() => {
+                setTimeout(() => {
+                  setShowAnimation(false)
+                  setShowGreeting(true)
+                }, 500)
+              }}
+              style={{ pointerEvents: 'none' }}
+            />
+          )}
         </div>
       </motion.div>
     )
