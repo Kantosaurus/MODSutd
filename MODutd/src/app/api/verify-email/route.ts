@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import nodemailer from 'nodemailer'
+import { EmailService } from './email-service'
 
 export async function POST(request: Request) {
   try {
@@ -33,59 +33,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create a verification token (you might want to use a more secure method in production)
+    // Create a verification token
     const verificationToken = Math.random().toString(36).substring(2, 15)
     
-    // Create email transporter with debug logging
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-      logger: true,
-      debug: true
+    // Initialize email service
+    const emailService = new EmailService({
+      user: process.env.EMAIL_USER,
+      password: process.env.EMAIL_PASSWORD,
+      appUrl: process.env.NEXT_PUBLIC_APP_URL || ''
     })
 
-    // Verify SMTP connection configuration
+    // Verify SMTP connection and send email
     try {
-      await transporter.verify()
-      console.log('SMTP connection verified successfully')
-    } catch (verifyError) {
-      console.error('SMTP Verification Error:', verifyError)
-      return NextResponse.json(
-        { 
-          error: 'Email service configuration error',
-          details: 'Failed to verify SMTP connection'
-        },
-        { status: 500 }
+      await emailService.verifyConnection()
+      await emailService.sendVerificationEmail(
+        studentId,
+        verificationToken,
+        process.env.NEXT_PUBLIC_APP_URL || ''
       )
-    }
-
-    // Send verification email
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: `${studentId}@mymail.sutd.edu.sg`,
-        subject: 'Verify your MODutd account',
-        html: `
-          <h1>Welcome to MODutd!</h1>
-          <p>Please click the link below to verify your email address:</p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/verify?token=${verificationToken}">
-            Verify Email
-          </a>
-        `,
-      })
-      console.log('Verification email sent successfully')
       return NextResponse.json({ success: true })
-    } catch (sendError) {
-      console.error('Email sending error:', sendError)
+    } catch (error) {
+      console.error('Email service error:', error)
       return NextResponse.json(
         { 
           error: 'Failed to send verification email',
-          details: sendError instanceof Error ? sendError.message : 'Unknown error'
+          details: error instanceof Error ? error.message : 'Unknown error'
         },
         { status: 500 }
       )
