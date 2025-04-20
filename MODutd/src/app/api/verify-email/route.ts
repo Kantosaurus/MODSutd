@@ -5,16 +5,29 @@ export async function POST(request: Request) {
   try {
     const { studentId } = await request.json()
 
+    // Debug logging for environment variables
+    console.log('Environment variables check:', {
+      EMAIL_USER: process.env.EMAIL_USER ? 'Set' : 'Not Set',
+      EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'Set' : 'Not Set',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'Not Set'
+    })
+
     // Check if required environment variables are set
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
       console.error('Missing email configuration:', {
         hasEmailUser: !!process.env.EMAIL_USER,
-        hasEmailPassword: !!process.env.EMAIL_PASSWORD
+        hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL
       })
       return NextResponse.json(
         { 
           error: 'Email service not configured',
-          details: 'Please contact the administrator'
+          details: 'Please contact the administrator',
+          debug: {
+            hasEmailUser: !!process.env.EMAIL_USER,
+            hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+            appUrl: process.env.NEXT_PUBLIC_APP_URL
+          }
         },
         { status: 500 }
       )

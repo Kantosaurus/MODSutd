@@ -104,13 +104,18 @@ export default function SignupPage() {
         const data = await response.json()
 
         if (!response.ok) {
+          console.error('Verification API error:', data)
           throw new Error(data.details || data.error || 'Failed to send verification email')
         }
 
         setShowAnimation(true)
       } catch (error) {
         console.error('Verification error:', error)
-        setVerificationError(error instanceof Error ? error.message : 'Failed to send verification email. Please try again.')
+        setVerificationError(
+          error instanceof Error 
+            ? error.message 
+            : 'Failed to send verification email. Please try again.'
+        )
       } finally {
         setIsVerifying(false)
       }
