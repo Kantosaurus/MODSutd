@@ -168,16 +168,16 @@ export default function SignupPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center"
+            className="text-center max-w-2xl mx-auto"
           >
             <motion.h2 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-3xl font-extrabold text-gray-900 space-y-2 text-center"
+              className="text-3xl font-extrabold text-gray-900 space-y-2"
             >
               <div>Hello {name}!</div>
-              <div className="whitespace-nowrap">We're pleased to have you onboard!</div>
+              <div>We're pleased to have you onboard!</div>
             </motion.h2>
             <motion.p 
               initial={{ y: 20, opacity: 0 }}
