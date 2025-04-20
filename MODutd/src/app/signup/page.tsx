@@ -27,6 +27,7 @@ export default function SignupPage() {
   const confirmPasswordRef = useRef<HTMLInputElement>(null)
 
   const [animationData, setAnimationData] = useState(null)
+  const [isLoadingAnimation, setIsLoadingAnimation] = useState(false)
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,13 +101,16 @@ export default function SignupPage() {
           body: JSON.stringify({ studentId }),
         })
 
+        const data = await response.json()
+
         if (!response.ok) {
-          throw new Error('Failed to send verification email')
+          throw new Error(data.details || data.error || 'Failed to send verification email')
         }
 
         setShowAnimation(true)
       } catch (error) {
-        setVerificationError('Failed to send verification email. Please try again.')
+        console.error('Verification error:', error)
+        setVerificationError(error instanceof Error ? error.message : 'Failed to send verification email. Please try again.')
       } finally {
         setIsVerifying(false)
       }
@@ -118,12 +122,29 @@ export default function SignupPage() {
   }
 
   useEffect(() => {
-    // Fetch the Lottie JSON data
-    fetch('https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.json')
-      .then(response => response.json())
-      .then(data => setAnimationData(data))
-      .catch(error => console.error('Error loading animation:', error))
-  }, [])
+    const loadAnimation = async () => {
+      setIsLoadingAnimation(true)
+      try {
+        const response = await fetch('https://lottie.host/149a1f69-ac4b-47ab-8b4c-a9cf7027f417/n4Nd6TOihV.json')
+        if (!response.ok) {
+          throw new Error('Failed to fetch animation')
+        }
+        const data = await response.json()
+        setAnimationData(data)
+      } catch (error) {
+        console.error('Error loading animation:', error)
+        // Fallback to a simple success message if animation fails
+        setShowAnimation(false)
+        setShowGreeting(true)
+      } finally {
+        setIsLoadingAnimation(false)
+      }
+    }
+
+    if (showAnimation) {
+      loadAnimation()
+    }
+  }, [showAnimation])
 
   if (showAnimation) {
     return (
@@ -134,7 +155,11 @@ export default function SignupPage() {
         className="min-h-screen flex items-center justify-center bg-gray-50"
       >
         <div className="w-64 h-64">
-          {animationData && (
+          {isLoadingAnimation ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+          ) : animationData ? (
             <Lottie
               animationData={animationData}
               loop={false}
@@ -147,6 +172,10 @@ export default function SignupPage() {
               }}
               style={{ pointerEvents: 'none' }}
             />
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-600">Loading animation...</p>
+            </div>
           )}
         </div>
       </motion.div>
