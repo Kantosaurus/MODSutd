@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { EmailService } from './email-service'
+import clientPromise from '@/lib/mongodb'
+import { VerificationToken } from '@/types/user'
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +38,22 @@ export async function POST(request: Request) {
     // Create a verification token
     const verificationToken = Math.random().toString(36).substring(2, 15)
     
+    // Store the verification token in the database
+    const client = await clientPromise
+    const db = client.db()
+
+    // Set token expiration to 24 hours from now
+    const expiresAt = new Date()
+    expiresAt.setHours(expiresAt.getHours() + 24)
+
+    await db.collection<VerificationToken>('verificationTokens').insertOne({
+      id: Math.random().toString(36).substring(2, 15),
+      token: verificationToken,
+      studentId,
+      expiresAt,
+      createdAt: new Date()
+    })
+
     // Initialize email service
     const emailService = new EmailService({
       user: process.env.EMAIL_USER,
