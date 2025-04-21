@@ -84,14 +84,14 @@ export function generateVerificationEmailTemplate(studentId: string, verificatio
           </div>
 
           <div style="text-align: center;">
-            <a href="${appUrl}/verify?token=${verificationToken}" class="verify-button" style="display: inline-block; background: #2563EB; color: #FFFFFF !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 24px 0; text-align: center; transition: background-color 0.2s ease;">
+            <a href="${appUrl}/signup/verify?token=${verificationToken}" class="verify-button" style="display: inline-block; background: #2563EB; color: #FFFFFF !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 500; margin: 24px 0; text-align: center; transition: background-color 0.2s ease;">
               Verify Email Address
             </a>
           </div>
 
           <p style="font-size: 14px; color: #6B7280;">If the button doesn't work, you can copy and paste this link into your browser:</p>
           <p style="font-size: 14px; color: #6B7280; word-break: break-all;">
-            ${appUrl}/verify?token=${verificationToken}
+            ${appUrl}/signup/verify?token=${verificationToken}
           </p>
 
           <div class="footer">
