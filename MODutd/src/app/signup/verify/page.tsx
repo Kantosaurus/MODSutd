@@ -9,6 +9,7 @@ function VerifyContent() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState<string>('');
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -35,11 +36,16 @@ function VerifyContent() {
           throw new Error(data.error || 'Verification failed');
         }
 
+        // Get user's name from the response
+        if (data.userName) {
+          setUserName(data.userName);
+        }
+
         setStatus('success');
-        // Redirect to login page after 3 seconds
+        // Redirect to calendar page after 5 seconds to show welcome message
         setTimeout(() => {
-          router.push('/login');
-        }, 3000);
+          router.push('/calendar');
+        }, 5000);
       } catch (error) {
         setStatus('error');
         setError(error instanceof Error ? error.message : 'Verification failed');
@@ -69,7 +75,15 @@ function VerifyContent() {
           {status === 'success' && (
             <>
               <h2 className="text-3xl font-bold text-green-600 mb-4">Email Verified!</h2>
-              <p className="text-gray-600">Your email has been successfully verified. Redirecting to login...</p>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="text-2xl text-gray-800 mb-4"
+              >
+                Hello {userName}, welcome to MODutd! 👋
+              </motion.p>
+              <p className="text-gray-600">Your email has been successfully verified. Redirecting to the home page...</p>
             </>
           )}
 

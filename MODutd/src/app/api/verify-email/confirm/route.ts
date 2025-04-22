@@ -41,6 +41,18 @@ export async function POST(request: Request) {
       )
     }
 
+    // Get user's name before updating verification status
+    const user = await db
+      .collection('users')
+      .findOne({ studentId: verificationToken.studentId })
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
     // Update user's verification status
     const result = await db
       .collection('users')
@@ -68,7 +80,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true,
-      message: 'Email verified successfully'
+      message: 'Email verified successfully',
+      userName: user.name // Return the user's name
     })
   } catch (error) {
     console.error('Email verification confirmation error:', error)
