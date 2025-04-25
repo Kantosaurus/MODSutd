@@ -57,7 +57,16 @@ export default function FloatingDockDemo() {
       ),
       href: "/",
       onClick: () => {
-        // TODO: Implement logout logic
+        // Clear authentication state from client storage
+        // Even though we use MongoDB on the server, we store the auth token in the client
+        localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
+        
+        // Clear any auth cookies if they exist
+        // Setting expiration date to Jan 1, 1970 (Unix epoch) effectively expires the cookie immediately
+        document.cookie = 'auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        
+        // Redirect to home page
         router.push('/');
       },
     },
