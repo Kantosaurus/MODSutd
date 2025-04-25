@@ -51,13 +51,6 @@ export default function FloatingDockDemo() {
       href: "/profile",
     },
     {
-      title: "Settings",
-      icon: (
-        <IconSettings className="h-full w-full text-neutral-500 dark:text-neutral-300" />
-      ),
-      href: "/settings",
-    },
-    {
       title: "Logout",
       icon: (
         <IconLogout className="h-full w-full text-neutral-500 dark:text-neutral-300" />
