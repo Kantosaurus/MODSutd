@@ -8,6 +8,7 @@ import {
   IconUser,
   IconBook,
   IconLogout,
+  IconPlus,
 } from "@tabler/icons-react";
 import { useRouter } from 'next/navigation';
 
@@ -35,6 +36,13 @@ export default function FloatingDockDemo() {
         <IconBook className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
       href: "/modules",
+    },
+    {
+      title: "New Plan",
+      icon: (
+        <IconPlus className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+      ),
+      href: "/new-plan",
     },
     {
       title: "Progress",
