@@ -25,8 +25,7 @@ export default function LoginHero() {
       const user = await authenticateUser(studentId, password);
       
       if (user) {
-        // In a real application, you would store the user session here
-        router.push('/calendar');
+        router.push('/dashboard');
       } else {
         setError('Invalid student ID or password');
       }
@@ -41,7 +40,12 @@ export default function LoginHero() {
       <div className="container mx-auto px-8">
         <motion.div
           animate={{ y: showLogin ? -50 : 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ 
+            type: "spring",
+            stiffness: 100,
+            damping: 15,
+            duration: 0.7
+          }}
         >
           <div className="text-5xl md:text-7xl font-bold text-black max-w-3xl">
             Plan your modules{" "}
@@ -54,12 +58,14 @@ export default function LoginHero() {
           <p className="text-xl md:text-2xl text-gray-600 mt-6 max-w-2xl">
             Your Ultimate Module Planning Companion for SUTD Students
           </p>
-          <button 
+          <motion.button 
             onClick={() => setShowLogin(true)}
             className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-blue-700 transition duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             Log In
-          </button>
+          </motion.button>
         </motion.div>
 
         <AnimatePresence>
@@ -68,37 +74,56 @@ export default function LoginHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ 
+                type: "spring",
+                stiffness: 100,
+                damping: 15,
+                duration: 0.7
+              }}
               className="mt-8 max-w-2xl"
             >
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
                   <input
                     type="text"
                     placeholder="Student ID"
                     value={studentId}
                     onChange={(e) => setStudentId(e.target.value)}
-                    className="w-full px-4 py-3 text-2xl text-gray-900 bg-gray-50 focus:outline-none focus:ring-blue-500 focus:z-10 rounded-lg"
+                    className="w-full px-4 py-3 text-2xl text-gray-900 bg-gray-50 focus:outline-none focus:ring-blue-500 focus:z-10 rounded-lg transition-all duration-300 hover:shadow-md"
                   />
-                </div>
-                <div>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
                   <input
                     type="password"
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 text-2xl text-gray-900 bg-gray-50 focus:outline-none focus:ring-blue-500 focus:z-10 rounded-lg"
+                    className="w-full px-4 py-3 text-2xl text-gray-900 bg-gray-50 focus:outline-none focus:ring-blue-500 focus:z-10 rounded-lg transition-all duration-300 hover:shadow-md"
                   />
-                </div>
+                </motion.div>
                 {error && (
-                  <div className="text-red-500 text-xl text-center">{error}</div>
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-xl text-center"
+                  >
+                    {error}
+                  </motion.div>
                 )}
-                <button
+                <motion.button
                   type="submit"
                   className="w-full py-3 px-4 bg-blue-600 text-white text-2xl rounded-lg font-semibold hover:bg-blue-700 transition duration-300"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Sign In
-                </button>
+                </motion.button>
               </form>
             </motion.div>
           )}
