@@ -66,6 +66,8 @@ const MINOR_OPTIONS = [
   'Psychology'
 ];
 
+const HASS_MINOR = 'HASS';
+
 type Step = 'name' | 'pillar' | 'track' | 'minors';
 
 export default function NewPlanPage() {
@@ -136,9 +138,26 @@ export default function NewPlanPage() {
       setSelectedMinors(selectedMinors.filter(m => m !== minor));
       setNumMinors(prev => prev - 1);
     } else if (numMinors < 2) {
-      setSelectedMinors([...selectedMinors, minor]);
+      if (minor === HASS_MINOR) {
+        setSelectedMinors([HASS_MINOR, ...selectedMinors]);
+      } else {
+        setSelectedMinors([...selectedMinors, minor]);
+      }
       setNumMinors(prev => prev + 1);
     }
+  };
+
+  const isMinorDisabled = (minor: string) => {
+    if (selectedMinors.includes(minor)) return false;
+    if (numMinors >= 2) return true;
+    
+    if (selectedMinors.includes(HASS_MINOR)) return false;
+    
+    if (numMinors === 1 && !selectedMinors.includes(HASS_MINOR)) {
+      return minor !== HASS_MINOR;
+    }
+    
+    return false;
   };
 
   return (
@@ -241,7 +260,6 @@ export default function NewPlanPage() {
                             onClick={() => {
                               setPillar(p);
                               setIsDropdownOpen(false);
-                              handleNext();
                             }}
                             className="w-full px-4 py-3 text-2xl text-left hover:bg-gray-50 transition-colors duration-150"
                           >
@@ -294,11 +312,27 @@ export default function NewPlanPage() {
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => handleMinorSelect(HASS_MINOR)}
+                  disabled={isMinorDisabled(HASS_MINOR)}
+                  className={`p-4 text-left rounded-lg border transition-colors duration-200 ${
+                    selectedMinors.includes(HASS_MINOR)
+                      ? 'bg-blue-50 border-blue-200'
+                      : 'bg-white border-gray-200 hover:border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
+                >
+                  <h3 className="text-lg font-medium text-gray-900">{HASS_MINOR}</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedMinors.length === 1 && !selectedMinors.includes(HASS_MINOR) 
+                      ? 'Required for second minor' 
+                      : 'Optional minor'}
+                  </p>
+                </button>
                 {MINOR_OPTIONS.map((minor) => (
                   <button
                     key={minor}
                     onClick={() => handleMinorSelect(minor)}
-                    disabled={!selectedMinors.includes(minor) && numMinors >= 2}
+                    disabled={isMinorDisabled(minor)}
                     className={`p-4 text-left rounded-lg border transition-colors duration-200 ${
                       selectedMinors.includes(minor)
                         ? 'bg-blue-50 border-blue-200'
