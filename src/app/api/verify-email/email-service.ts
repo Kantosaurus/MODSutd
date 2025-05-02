@@ -39,7 +39,7 @@ export class EmailService {
       await this.transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: `${studentId}@mymail.sutd.edu.sg`,
-        subject: 'Welcome to MODutd! Please verify your email',
+        subject: 'Welcome to MODSutd! Please verify your email',
         html: generateVerificationEmailTemplate(studentId, verificationToken, appUrl)
       })
       console.log('Verification email sent successfully')

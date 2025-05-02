@@ -61,7 +61,7 @@ export default function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                   Welcome Back
                 </h2>
                 <p className="mt-1 text-sm text-gray-500">
-                  Sign in to your MODutd account
+                  Sign in to your MODSutd account
                 </p>
               </div>
 

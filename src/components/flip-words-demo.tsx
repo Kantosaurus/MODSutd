@@ -13,7 +13,7 @@ export default function FlipWordsDemo() {
             <FlipWords words={words} className="text-blue-600" />
           </span>
           <br />
-          with MODutd
+          with MODSutd
         </div>
         <p className="text-xl md:text-2xl text-gray-600 mt-6 max-w-2xl">
           Your Ultimate Module Planning Companion for SUTD Students

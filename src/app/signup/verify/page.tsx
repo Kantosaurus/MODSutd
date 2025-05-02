@@ -81,7 +81,7 @@ function VerifyContent() {
                 transition={{ delay: 0.5 }}
                 className="text-2xl text-gray-800 mb-4"
               >
-                Hello {userName}, welcome to MODutd! 👋
+                Hello {userName}, welcome to MODSutd! 👋
               </motion.p>
               <p className="text-gray-600">Your email has been successfully verified. Redirecting to the home page...</p>
             </>

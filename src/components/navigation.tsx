@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Navbar from '@/components/navbar'
-import FloatingDockDemo from '@/components/floating-dock'
+import { SidebarNavigation } from '@/components/ui/sidebar'
 import { usePathname } from 'next/navigation'
 
 export default function Navigation() {
@@ -15,6 +15,6 @@ export default function Navigation() {
     return <Navbar />
   }
   
-  // For authenticated pages, show the floating dock
-  return <FloatingDockDemo />
+  // For authenticated pages, show the sidebar
+  return <SidebarNavigation />
 } 

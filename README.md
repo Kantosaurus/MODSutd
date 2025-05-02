@@ -1,6 +1,6 @@
-# MODutd - Module Planning Tool
+# MODSutd - Module Planning Tool
 
-MODutd is a modern web application built with Next.js 14, designed to help students plan and manage their academic modules. The application provides an intuitive interface for module planning, calendar integration, and academic progress tracking.
+MODSutd is a modern web application built with Next.js 14, designed to help students plan and manage their academic modules. The application provides an intuitive interface for module planning, calendar integration, and academic progress tracking.
 
 ## Features
 
@@ -50,7 +50,7 @@ src/
 1. Clone the repository:
    ```bash
    git clone [repository-url]
-   cd modutd
+   cd MODSutd
    ```
 
 2. Install dependencies:

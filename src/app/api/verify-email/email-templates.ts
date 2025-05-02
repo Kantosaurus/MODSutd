@@ -78,10 +78,10 @@ export function generateVerificationEmailTemplate(studentId: string, verificatio
       <body>
         <div class="container">
           <div class="logo">
-            <h1>MODutd</h1>
+            <h1>MODSutd</h1>
           </div>
-          <h1>Welcome to MODutd! 🎉</h1>
-          <p>Thank you for joining MODutd! We're excited to have you on board. Before you can start using your account, please verify your email address by clicking the button below.</p>
+          <h1>Welcome to MODSutd! 🎉</h1>
+          <p>Thank you for joining MODSutd! We're excited to have you on board. Before you can start using your account, please verify your email address by clicking the button below.</p>
           
           <div class="credentials">
             <p><strong>Student ID:</strong> ${studentId}</p>
@@ -100,7 +100,7 @@ export function generateVerificationEmailTemplate(studentId: string, verificatio
           </p>
 
           <div class="footer">
-            <p>This email was sent by MODutd. If you didn't create this account, you can safely ignore this email.</p>
+            <p>This email was sent by MODSutd. If you didn't create this account, you can safely ignore this email.</p>
           </div>
         </div>
       </body>
