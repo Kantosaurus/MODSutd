@@ -6,9 +6,9 @@ import HomeDashboard from '@/components/home-dashboard'
 
 export default function DashboardPage() {
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen w-full">
       <Navigation />
-      <main className="flex-1 overflow-auto md:ml-[60px] lg:ml-[300px] transition-all duration-300">
+      <main className="flex-1 w-full md:pl-[60px]">
         <HomeDashboard />
       </main>
     </div>

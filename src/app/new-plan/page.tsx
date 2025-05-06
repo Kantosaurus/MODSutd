@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { IconChevronDown, IconChevronRight, IconPlus, IconMinus } from '@tabler/icons-react';
+import { MultiStepLoader } from '@/components/ui/multi-step-loader';
+import { modules } from '@/data/modules';
 
 const PILLARS = [
   'Architecture and Sustainable Design',
@@ -68,7 +70,7 @@ const MINOR_OPTIONS = [
 
 const HASS_MINOR = 'HASS';
 
-type Step = 'name' | 'pillar' | 'track' | 'minors';
+type Step = 'name' | 'pillar' | 'track' | 'hass' | 'minors';
 
 export default function NewPlanPage() {
   const [currentStep, setCurrentStep] = useState<Step>('name');
@@ -77,12 +79,24 @@ export default function NewPlanPage() {
   const [selectedTrack, setSelectedTrack] = useState('');
   const [numMinors, setNumMinors] = useState(0);
   const [selectedMinors, setSelectedMinors] = useState<string[]>([]);
+  const [selectedHassModules, setSelectedHassModules] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const displayText = pillar ? (isHovering ? pillar : PILLAR_ABBREVIATIONS[pillar]) : 'Select a pillar';
+
+  const hassModules = modules.filter(module => module.pillar === 'HASS');
+
+  const loadingStates = [
+    { text: "Verifying selected HASS modules" },
+    { text: "Building curriculum structure" },
+    { text: "Checking prerequisites and requirements" },
+    { text: "Optimizing course schedule" },
+    { text: "Finalizing your plan" }
+  ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -104,12 +118,28 @@ export default function NewPlanPage() {
         if (pillar) setCurrentStep('track');
         break;
       case 'track':
-        if (selectedTrack) setCurrentStep('minors');
+        if (selectedTrack) setCurrentStep('hass');
+        break;
+      case 'hass':
+        if (selectedHassModules.length > 0) setCurrentStep('minors');
         break;
       case 'minors':
-        // TODO: Handle plan creation with all selected options
-        console.log('Creating plan:', { planName, pillar, selectedTrack, numMinors, selectedMinors });
-        router.push('/dashboard');
+        if (numMinors > 0) {
+          setShowLoader(true);
+          // Simulate processing time before redirecting
+          setTimeout(() => {
+            console.log('Creating plan:', { 
+              planName, 
+              pillar, 
+              selectedTrack, 
+              selectedHassModules,
+              numMinors, 
+              selectedMinors 
+            });
+            setShowLoader(false);
+            router.push('/dashboard');
+          }, 10000); // 10 seconds to show all loader steps
+        }
         break;
     }
   };
@@ -122,15 +152,26 @@ export default function NewPlanPage() {
       case 'track':
         setCurrentStep('pillar');
         break;
-      case 'minors':
+      case 'hass':
         setCurrentStep('track');
+        break;
+      case 'minors':
+        setCurrentStep('hass');
         break;
     }
   };
 
   const handleTrackSelect = (track: string) => {
     setSelectedTrack(track);
-    setCurrentStep('minors');
+    setCurrentStep('hass');
+  };
+
+  const handleHassModuleSelect = (moduleCode: string) => {
+    if (selectedHassModules.includes(moduleCode)) {
+      setSelectedHassModules(selectedHassModules.filter(code => code !== moduleCode));
+    } else {
+      setSelectedHassModules([...selectedHassModules, moduleCode]);
+    }
   };
 
   const handleMinorSelect = (minor: string) => {
@@ -162,16 +203,18 @@ export default function NewPlanPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <MultiStepLoader loadingStates={loadingStates} loading={showLoader} duration={2000} loop={false} />
+      
       <div className="w-full">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold text-gray-900">Create New Plan</h1>
             <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-500">Step {['name', 'pillar', 'track', 'minors'].indexOf(currentStep) + 1} of 4</span>
+              <span className="text-sm text-gray-500">Step {['name', 'pillar', 'track', 'hass', 'minors'].indexOf(currentStep) + 1} of 5</span>
               <div className="w-32 h-2 bg-gray-200 rounded-full">
                 <div 
                   className="h-full bg-blue-600 rounded-full transition-all duration-300"
-                  style={{ width: `${((['name', 'pillar', 'track', 'minors'].indexOf(currentStep) + 1) / 4) * 100}%` }}
+                  style={{ width: `${((['name', 'pillar', 'track', 'hass', 'minors'].indexOf(currentStep) + 1) / 5) * 100}%` }}
                 />
               </div>
             </div>
@@ -298,6 +341,59 @@ export default function NewPlanPage() {
               </div>
             </motion.div>
           )}
+          
+          {currentStep === 'hass' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-5xl font-extrabold text-gray-900">Select HASS modules</h2>
+                <span className="text-lg font-medium text-gray-500">
+                  {selectedHassModules.length} module(s) selected
+                </span>
+              </div>
+              
+              <div className="space-y-4 mt-6">
+                <p className="text-gray-700">
+                  Select the HASS (Humanities, Arts and Social Sciences) modules you're interested in taking:
+                </p>
+                
+                <div className="grid grid-cols-1 gap-3 mt-4">
+                  {hassModules.map((module) => (
+                    <button
+                      key={module.code}
+                      onClick={() => handleHassModuleSelect(module.code)}
+                      className={`p-4 text-left rounded-lg border transition-colors duration-200 ${
+                        selectedHassModules.includes(module.code)
+                          ? 'bg-blue-50 border-blue-200'
+                          : 'bg-white border-gray-200 hover:border-blue-200'
+                      }`}
+                    >
+                      <div className="flex justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium text-gray-900">{module.code}: {module.title}</h3>
+                          <p className="text-sm text-gray-500 mt-1">{module.credits} Credits • Term {module.term}</p>
+                        </div>
+                        <div className="flex items-center">
+                          {selectedHassModules.includes(module.code) ? (
+                            <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                              <IconMinus className="h-4 w-4 text-white" />
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
+                              <IconPlus className="h-4 w-4 text-gray-600" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {currentStep === 'minors' && (
             <motion.div
@@ -347,7 +443,7 @@ export default function NewPlanPage() {
           )}
         </div>
 
-        <div className="flex justify-between pt-4 border-t">
+        <div className="flex justify-between pt-4 border-t mt-8">
           {currentStep !== 'name' && (
             <button
               onClick={handleBack}
@@ -359,6 +455,13 @@ export default function NewPlanPage() {
           <button
             onClick={handleNext}
             className="ml-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center"
+            disabled={
+              (currentStep === 'name' && !planName.trim()) ||
+              (currentStep === 'pillar' && !pillar) ||
+              (currentStep === 'track' && !selectedTrack) ||
+              (currentStep === 'hass' && selectedHassModules.length === 0) ||
+              (currentStep === 'minors' && numMinors === 0)
+            }
           >
             {currentStep === 'minors' ? 'Create Plan' : 'Next'}
             {currentStep !== 'minors' && <IconChevronRight className="ml-2 h-5 w-5" />}

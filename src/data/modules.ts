@@ -119,6 +119,96 @@ const sampleCourses = {
       "credits": 12,
       "tags": ["Freshmore Core", "Term 1", "SMT"],
       "imageUrl": null
+    },
+    {
+      "_id": "65f8a1b2c3d4e5f6a7b8c9e1",
+      "courseNumber": "02.101",
+      "courseTitle": "Introduction to Philosophy",
+      "description": "This course provides an introduction to philosophy, focusing on major philosophical questions, methods, and areas of study. Students will explore philosophical problems from different historical periods and various cultural traditions, learn to analyze arguments, and develop their own philosophical positions.",
+      "learningObjectives": [
+        "Understand fundamental philosophical concepts and methods",
+        "Analyze philosophical arguments from different traditions",
+        "Develop critical thinking and reasoning skills",
+        "Articulate personal perspectives on philosophical questions"
+      ],
+      "deliveryFormat": "In-person seminar sessions",
+      "gradingScheme": "Students are graded based on essays, class participation, and a final paper.",
+      "workload": "3-0-6",
+      "credits": 9,
+      "tags": ["HASS", "Term 1", "Elective"],
+      "imageUrl": null
+    },
+    {
+      "_id": "65f8a1b2c3d4e5f6a7b8c9e2",
+      "courseNumber": "02.102",
+      "courseTitle": "World Literature",
+      "description": "This course examines major works of world literature across different periods, genres, and cultures. Students will analyze texts from various regions, exploring themes, narratives, and literary techniques that have shaped global literary traditions.",
+      "learningObjectives": [
+        "Analyze literary works from diverse cultural backgrounds",
+        "Identify key literary movements, themes, and techniques",
+        "Develop critical reading and writing skills",
+        "Understand the historical and cultural contexts of literary works"
+      ],
+      "deliveryFormat": "In-person seminar sessions",
+      "gradingScheme": "Students are graded based on reading responses, presentations, and essays.",
+      "workload": "3-0-6",
+      "credits": 9,
+      "tags": ["HASS", "Term 2", "Elective"],
+      "imageUrl": null
+    },
+    {
+      "_id": "65f8a1b2c3d4e5f6a7b8c9e3",
+      "courseNumber": "02.103",
+      "courseTitle": "Introduction to Psychology",
+      "description": "This course introduces students to the scientific study of human behavior and mental processes. Topics include perception, cognition, emotion, motivation, personality, social psychology, and psychological disorders.",
+      "learningObjectives": [
+        "Understand fundamental psychological concepts and theories",
+        "Learn about research methods in psychology",
+        "Apply psychological principles to everyday life",
+        "Develop critical thinking about human behavior"
+      ],
+      "deliveryFormat": "In-person lectures and discussions",
+      "gradingScheme": "Students are graded based on exams, research assignments, and class participation.",
+      "workload": "3-0-6",
+      "credits": 9,
+      "tags": ["HASS", "Term 1", "Elective"],
+      "imageUrl": null
+    },
+    {
+      "_id": "65f8a1b2c3d4e5f6a7b8c9e4",
+      "courseNumber": "02.104",
+      "courseTitle": "Political Science",
+      "description": "This course examines political systems, institutions, and processes. Students will explore political theories, comparative politics, international relations, and contemporary political issues.",
+      "learningObjectives": [
+        "Understand key political concepts and theories",
+        "Analyze political systems and institutions across different countries",
+        "Develop critical thinking about political issues",
+        "Apply political science concepts to current events"
+      ],
+      "deliveryFormat": "In-person seminar sessions",
+      "gradingScheme": "Students are graded based on essays, policy analyses, and a final exam.",
+      "workload": "3-0-6",
+      "credits": 9,
+      "tags": ["HASS", "Term 2", "Elective"],
+      "imageUrl": null
+    },
+    {
+      "_id": "65f8a1b2c3d4e5f6a7b8c9e5",
+      "courseNumber": "02.105",
+      "courseTitle": "Introduction to Economics",
+      "description": "This course introduces the fundamental principles of microeconomics and macroeconomics. Students will learn about markets, supply and demand, economic policies, and global economic systems.",
+      "learningObjectives": [
+        "Understand basic economic principles and theories",
+        "Analyze market dynamics and economic policies",
+        "Apply economic concepts to real-world situations",
+        "Develop critical thinking about economic issues"
+      ],
+      "deliveryFormat": "In-person lectures and problem-solving sessions",
+      "gradingScheme": "Students are graded based on problem sets, exams, and a research paper.",
+      "workload": "3-0-6",
+      "credits": 9,
+      "tags": ["HASS", "Term 3", "Elective"],
+      "imageUrl": null
     }
   ]
 };

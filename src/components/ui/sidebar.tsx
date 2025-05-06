@@ -237,7 +237,7 @@ export function SidebarNavigation({ className }: SidebarProps) {
 
   return (
     <motion.div 
-      className={cn("fixed left-0 top-0 h-screen z-40 flex flex-col bg-neutral-100 dark:bg-neutral-800", className)}
+      className={cn("fixed left-0 top-0 bottom-0 z-40 flex flex-col bg-neutral-100 dark:bg-neutral-800", className)}
       animate={{
         width: isOpen ? "300px" : "60px",
       }}
