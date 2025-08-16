@@ -1,87 +1,153 @@
-# MODSutd - Module Planning Tool
+# MODSutd
 
-MODSutd is a modern web application built with Next.js 14, designed to help students plan and manage their academic modules. The application provides an intuitive interface for module planning, calendar integration, and academic progress tracking.
+A full-stack application for managing SUTD modules with user progress tracking.
 
-## Features
+## Architecture
 
-- **Modern Tech Stack**
-  - Next.js 14 with App Router
-  - TypeScript for type safety
-  - Tailwind CSS for styling
-  - MongoDB for data persistence
-  - Framer Motion for animations
-  - Lottie for animated illustrations
-
-- **Core Functionality**
-  - User authentication and account management
-  - Module planning and scheduling
-  - Interactive calendar view
-  - Dashboard for academic progress
-  - Email notifications (via Nodemailer)
-  - Web scraping capabilities (via Puppeteer)
+- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Backend**: Node.js with GraphQL, Apollo Server, and Prisma
+- **Database**: PostgreSQL
+- **Containerization**: Docker and Docker Compose
 
 ## Project Structure
 
 ```
-src/
-├── app/              # Next.js app router pages
-│   ├── api/         # API routes
-│   ├── dashboard/   # Dashboard interface
-│   ├── modules/     # Module management
-│   ├── calendar/    # Calendar view
-│   └── new-plan/    # Module planning interface
-├── components/      # Reusable UI components
-├── lib/            # Utility functions and configurations
-├── hooks/          # Custom React hooks
-├── types/          # TypeScript type definitions
-└── data/           # Static data and constants
+.
+├── frontend/          # Next.js frontend application
+│   ├── src/          # Source code
+│   ├── public/       # Static assets
+│   └── Dockerfile    # Frontend Docker configuration
+├── backend/          # Node.js backend API
+│   ├── src/          # Source code
+│   ├── prisma/       # Database schema and migrations
+│   └── Dockerfile    # Backend Docker configuration
+├── docker-compose.yml     # Production Docker Compose
+├── docker-compose.dev.yml # Development Docker Compose
+└── README.md
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (Latest LTS version recommended)
-- MongoDB instance
-- npm or yarn package manager
+- Docker
+- Docker Compose
+- Node.js 18+ (for local development)
 
-### Installation
+### Development Setup
 
-1. Clone the repository:
+1. Clone the repository
+2. Copy environment files:
    ```bash
-   git clone [repository-url]
-   cd MODSutd
+   cp backend/.env.example backend/.env
    ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. Set up environment variables:
-   Create a `.env.local` file in the root directory with the following variables:
-   ```
-   MONGODB_URI=your_mongodb_connection_string
-   EMAIL_SERVER=your_email_server_details
-   ```
-
-4. Run the development server:
+3. Start the development environment:
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+This will start:
+- Frontend on http://localhost:3000
+- Backend GraphQL API on http://localhost:4000/graphql
+- PostgreSQL database on localhost:5432
+- Adminer (database UI) on http://localhost:8080
+
+### Production Setup
+
+```bash
+npm run build
+npm start
+```
+
+### Database Setup
+
+The database will be automatically set up when you start the Docker containers. To run migrations manually:
+
+```bash
+npm run db:migrate
+```
+
+To access the Prisma Studio (database UI):
+
+```bash
+npm run db:studio
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development environment
+- `npm run build` - Build all services
+- `npm start` - Start production environment
+- `npm run stop` - Stop all services
+- `npm run clean` - Clean up containers and volumes
+- `npm run db:migrate` - Run database migrations
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:studio` - Open Prisma Studio
+
+## Environment Variables
+
+### Backend (.env)
+
+```
+DATABASE_URL="postgresql://modsutd:password@postgres:5432/modsutd?schema=public"
+JWT_SECRET="your-super-secret-jwt-key-here"
+PORT=4000
+NODE_ENV=development
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+FRONTEND_URL=http://localhost:3000
+```
+
+### Frontend
+
+Environment variables are configured in `docker-compose.yml`:
+
+```
+NEXT_PUBLIC_GRAPHQL_URL=http://localhost:4000/graphql
+```
+
+## Features
+
+- User authentication and email verification
+- Module management and enrollment
+- Progress tracking
+- Responsive UI with Tailwind CSS
+- GraphQL API with Apollo Server
+- Type-safe database access with Prisma
+- Containerized development and production environments
 
 ## Development
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
+### Frontend Development
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Backend Development
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Make sure PostgreSQL is running (either through Docker or locally) and update the `DATABASE_URL` accordingly.
+
+## Deployment
+
+The application is containerized and can be deployed using Docker Compose or any container orchestration platform like Kubernetes.
+
+For production deployment:
+
+1. Update environment variables in `docker-compose.yml`
+2. Set up a production PostgreSQL database
+3. Configure proper secrets and security settings
+4. Run `docker-compose up -d`
 
 ## Technologies Used
 
@@ -94,10 +160,12 @@ src/
   - Lottie React
 
 - **Backend**
-  - Next.js API Routes
-  - MongoDB
+  - Node.js with TypeScript
+  - GraphQL with Apollo Server
+  - Prisma ORM
+  - PostgreSQL
+  - JWT Authentication
   - Nodemailer
-  - Puppeteer
 
 ## License
 
