@@ -64,6 +64,18 @@ async function createTables() {
       )
     `);
 
+    // Password reset tokens table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // Create indexes for better performance
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_enrollments_user_id ON enrollments(user_id);
@@ -71,6 +83,8 @@ async function createTables() {
       CREATE INDEX IF NOT EXISTS idx_enrollments_status ON enrollments(status);
       CREATE INDEX IF NOT EXISTS idx_courses_code ON courses(code);
       CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+      CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token ON password_reset_tokens(token);
+      CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id ON password_reset_tokens(user_id);
     `);
 
     console.log('✅ Database tables created successfully');

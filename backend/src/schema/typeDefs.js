@@ -64,6 +64,8 @@ const typeDefs = gql`
     # User mutations
     register(email: String!, password: String!, name: String!): AuthPayload!
     login(email: String!, password: String!): AuthPayload!
+    requestPasswordReset(email: String!): PasswordResetResponse!
+    resetPassword(token: String!, newPassword: String!): PasswordResetResponse!
 
     # Course mutations
     createCourse(input: CourseInput!): Course!
@@ -79,6 +81,12 @@ const typeDefs = gql`
   type AuthPayload {
     token: String!
     user: User!
+  }
+
+  type PasswordResetResponse {
+    success: Boolean!
+    message: String!
+    token: String
   }
 
   input CourseInput {

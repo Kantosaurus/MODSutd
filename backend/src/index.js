@@ -1,6 +1,6 @@
 const express = require('express');
 const { ApolloServer } = require('@apollo/server');
-const { expressMiddleware } = require('@apollo/server/express4');
+const { startStandaloneServer } = require('@apollo/server/standalone');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -10,8 +10,6 @@ const { connectPostgreSQL } = require('./database/postgresql');
 const { connectGraphDB } = require('./database/graphdb');
 
 async function startServer() {
-  const app = express();
-  
   // Connect to databases
   await connectPostgreSQL();
   await connectGraphDB();
@@ -22,37 +20,20 @@ async function startServer() {
     resolvers,
   });
 
-  await server.start();
+  const PORT = process.env.PORT || 4000;
 
-  // Enable CORS and JSON parsing
-  app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    credentials: true
-  }));
-  
-  app.use(express.json());
-
-  // Apply Apollo GraphQL middleware
-  app.use('/graphql', expressMiddleware(server, {
+  // Start the server
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: PORT },
     context: async ({ req }) => {
       return {
         req,
         user: req.user
       };
     }
-  }));
-
-  // Health check endpoint
-  app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'MODSutd Backend is running' });
   });
 
-  const PORT = process.env.PORT || 4000;
-  
-  app.listen(PORT, () => {
-    console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-    console.log(`🏥 Health check at http://localhost:${PORT}/health`);
-  });
+  console.log(`🚀 Server ready at ${url}`);
 }
 
 startServer().catch(error => {

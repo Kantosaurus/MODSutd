@@ -1,4 +1,165 @@
+'use client';
+
+import { useState } from 'react';
+
 export default function Home() {
+  const [activeModal, setActiveModal] = useState<'login' | 'register' | 'forgot' | null>(null);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    name: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    setError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent, type: 'login' | 'register' | 'forgot') => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      if (type === 'register') {
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+        
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              mutation Register($email: String!, $password: String!, $name: String!) {
+                register(email: $email, password: $password, name: $name) {
+                  token
+                  user {
+                    id
+                    email
+                    name
+                  }
+                }
+              }
+            `,
+            variables: {
+              email: formData.email,
+              password: formData.password,
+              name: formData.name
+            }
+          }),
+        });
+
+        const result = await response.json();
+        if (result.errors) {
+          setError(result.errors[0].message);
+        } else {
+          localStorage.setItem('token', result.data.register.token);
+          alert('Registration successful!');
+          setActiveModal(null);
+          resetForm();
+        }
+      } else if (type === 'login') {
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              mutation Login($email: String!, $password: String!) {
+                login(email: $email, password: $password) {
+                  token
+                  user {
+                    id
+                    email
+                    name
+                  }
+                }
+              }
+            `,
+            variables: {
+              email: formData.email,
+              password: formData.password
+            }
+          }),
+        });
+
+        const result = await response.json();
+        if (result.errors) {
+          setError(result.errors[0].message);
+        } else {
+          localStorage.setItem('token', result.data.login.token);
+          alert('Login successful!');
+          setActiveModal(null);
+          resetForm();
+        }
+      } else if (type === 'forgot') {
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              mutation RequestPasswordReset($email: String!) {
+                requestPasswordReset(email: $email) {
+                  success
+                  message
+                  token
+                }
+              }
+            `,
+            variables: {
+              email: formData.email
+            }
+          }),
+        });
+
+        const result = await response.json();
+        if (result.errors) {
+          setError(result.errors[0].message);
+        } else {
+          alert(result.data.requestPasswordReset.message);
+          if (result.data.requestPasswordReset.token) {
+            console.log('Reset token (dev only):', result.data.requestPasswordReset.token);
+          }
+          setActiveModal(null);
+          resetForm();
+        }
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    }
+
+    setLoading(false);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      email: '',
+      password: '',
+      name: '',
+      confirmPassword: ''
+    });
+    setError('');
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    resetForm();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation */}
@@ -11,10 +172,14 @@ export default function Home() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
+              <button 
+                onClick={() => setActiveModal('login')}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors">
                 Login
               </button>
-              <button className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg transition-colors">
+              <button 
+                onClick={() => setActiveModal('register')}
+                className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg transition-colors">
                 Register
               </button>
             </div>
@@ -33,7 +198,9 @@ export default function Home() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors">
+            <button 
+              onClick={() => setActiveModal('register')}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg text-lg font-medium transition-colors">
               Get Started
             </button>
             <button className="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 px-8 py-3 rounded-lg text-lg font-medium border border-gray-300 dark:border-gray-600 transition-colors">
@@ -75,6 +242,163 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Modals */}
+      {activeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {activeModal === 'login' && 'Login'}
+                {activeModal === 'register' && 'Sign Up'}
+                {activeModal === 'forgot' && 'Reset Password'}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 rounded">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={(e) => handleSubmit(e, activeModal)}>
+              {activeModal === 'register' && (
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              )}
+
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+
+              {activeModal !== 'forgot' && (
+                <div className="mb-4">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              )}
+
+              {activeModal === 'register' && (
+                <div className="mb-4">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white py-2 px-4 rounded-lg font-medium transition-colors"
+              >
+                {loading ? 'Loading...' : 
+                  activeModal === 'login' ? 'Login' :
+                  activeModal === 'register' ? 'Sign Up' : 'Send Reset Link'
+                }
+              </button>
+
+              {activeModal === 'login' && (
+                <div className="mt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal('forgot')}
+                    className="text-indigo-600 hover:text-indigo-500 text-sm"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              )}
+
+              <div className="mt-4 text-center">
+                {activeModal === 'login' ? (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Don&apos;t have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('register')}
+                      className="text-indigo-600 hover:text-indigo-500 font-medium"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                ) : activeModal === 'register' ? (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('login')}
+                      className="text-indigo-600 hover:text-indigo-500 font-medium"
+                    >
+                      Login
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Remember your password?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('login')}
+                      className="text-indigo-600 hover:text-indigo-500 font-medium"
+                    >
+                      Login
+                    </button>
+                  </p>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-white dark:bg-gray-800 border-t">
