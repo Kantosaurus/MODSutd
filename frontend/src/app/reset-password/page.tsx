@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -87,18 +87,20 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 text-center">
-          <div className="text-red-500 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+      <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center p-4">
+        <div className="bg-white border-4 border-[#111110] max-w-md w-full p-12 text-center">
+          <div className="mb-8">
+            <div className="w-20 h-20 mx-auto border-4 border-red-600 flex items-center justify-center">
+              <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                <path strokeLinecap="square" strokeLinejoin="miter" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 18.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Invalid Reset Link</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <h2 className="text-3xl font-bold text-[#111110] mb-6 uppercase tracking-[0.1em]">Invalid Reset Link</h2>
+          <p className="text-[#111110] opacity-70 mb-8 leading-relaxed">
             This password reset link is invalid or has expired. Please request a new password reset.
           </p>
-          <Link href="/" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+          <Link href="/" className="inline-block bg-[#111110] hover:bg-[#dcbd8e] hover:text-[#111110] text-white px-8 py-4 font-bold transition-all duration-200 uppercase tracking-[0.15em] text-sm border-2 border-[#111110]">
             Return to Home
           </Link>
         </div>
@@ -108,18 +110,20 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6 text-center">
-          <div className="text-green-500 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center p-4">
+        <div className="bg-white border-4 border-[#111110] max-w-md w-full p-12 text-center">
+          <div className="mb-8">
+            <div className="w-20 h-20 mx-auto border-4 border-green-600 flex items-center justify-center bg-green-50">
+              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
+                <path strokeLinecap="square" strokeLinejoin="miter" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Password Reset Successful</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-6">
+          <h2 className="text-3xl font-bold text-[#111110] mb-6 uppercase tracking-[0.1em]">Password Reset Successful</h2>
+          <p className="text-[#111110] opacity-70 mb-8 leading-relaxed">
             Your password has been successfully reset. You will be redirected to the home page in a few seconds.
           </p>
-          <Link href="/" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+          <Link href="/" className="inline-block bg-[#111110] hover:bg-[#dcbd8e] hover:text-[#111110] text-white px-8 py-4 font-bold transition-all duration-200 uppercase tracking-[0.15em] text-sm border-2 border-[#111110]">
             Continue to Home
           </Link>
         </div>
@@ -128,22 +132,22 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Reset Your Password</h2>
-          <p className="text-gray-600 dark:text-gray-300">Enter your new password below</p>
+    <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center p-4">
+      <div className="bg-white border-4 border-[#111110] max-w-md w-full p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-[#111110] mb-3 uppercase tracking-[0.1em]">Reset Your Password</h2>
+          <p className="text-[#111110] opacity-70">Enter your new password below</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 border border-red-400 text-red-700 dark:text-red-300 rounded">
-            {error}
+          <div className="mb-6 p-4 bg-red-50 border-2 border-red-600 text-red-800">
+            <p className="text-sm font-semibold uppercase tracking-wider">{error}</p>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <div className="mb-6">
+            <label htmlFor="newPassword" className="block text-xs font-bold text-[#111110] mb-2 uppercase tracking-[0.15em]">
               New Password
             </label>
             <input
@@ -154,12 +158,12 @@ export default function ResetPassword() {
               onChange={handleInputChange}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-4 py-3 border-2 border-[#111110] focus:outline-none focus:border-[#dcbd8e] bg-white text-[#111110] transition-colors"
             />
           </div>
 
-          <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <div className="mb-8">
+            <label htmlFor="confirmPassword" className="block text-xs font-bold text-[#111110] mb-2 uppercase tracking-[0.15em]">
               Confirm New Password
             </label>
             <input
@@ -170,25 +174,40 @@ export default function ResetPassword() {
               onChange={handleInputChange}
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-4 py-3 border-2 border-[#111110] focus:outline-none focus:border-[#dcbd8e] bg-white text-[#111110] transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white py-2 px-4 rounded-lg font-medium transition-colors mb-4"
+            className="w-full bg-[#111110] hover:bg-[#dcbd8e] hover:text-[#111110] disabled:bg-gray-400 text-white py-4 px-4 font-bold transition-all duration-200 uppercase tracking-[0.15em] text-sm border-2 border-[#111110] mb-6"
           >
             {loading ? 'Resetting Password...' : 'Reset Password'}
           </button>
 
           <div className="text-center">
-            <Link href="/" className="text-indigo-600 hover:text-indigo-500 text-sm">
+            <Link href="/" className="text-[#111110] hover:text-[#dcbd8e] text-xs uppercase tracking-[0.1em] font-semibold">
               Back to Home
             </Link>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center p-4">
+        <div className="bg-white border-4 border-[#111110] max-w-md w-full p-12 text-center">
+          <div className="w-16 h-16 mx-auto mb-6 border-4 border-[#111110] border-t-transparent animate-spin"></div>
+          <p className="text-[#111110] uppercase tracking-[0.15em] font-semibold text-sm">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
