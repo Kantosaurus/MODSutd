@@ -13,9 +13,20 @@ const typeDefs = gql`
     id: ID!
     code: String!
     name: String!
+    overview: String
     description: String
     credits: Int!
+    learningObjectives: String
+    measurableOutcomes: String
+    topicsCovered: String
+    textbooks: String
+    deliveryFormat: String
+    gradingScheme: String
+    terms: String
+    professors: String
+    tags: String
     prerequisites: [Course!]!
+    corequisites: [Course!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -47,6 +58,7 @@ const typeDefs = gql`
     # Course queries
     courses: [Course!]!
     course(id: ID!): Course
+    courseByCode(code: String!): Course
     coursesByCode(code: String!): [Course!]!
 
     # Enrollment queries
@@ -57,6 +69,7 @@ const typeDefs = gql`
 
     # Graph queries (using GraphDB)
     coursePrerequisites(courseId: ID!): [Course!]!
+    courseCorequisites(courseId: ID!): [Course!]!
     recommendedCourses(userId: ID!): [Course!]!
   }
 
@@ -92,17 +105,39 @@ const typeDefs = gql`
   input CourseInput {
     code: String!
     name: String!
+    overview: String
     description: String
     credits: Int!
+    learningObjectives: String
+    measurableOutcomes: String
+    topicsCovered: String
+    textbooks: String
+    deliveryFormat: String
+    gradingScheme: String
+    terms: String
+    professors: String
+    tags: String
     prerequisiteIds: [ID!]
+    corequisiteIds: [ID!]
   }
 
   input CourseUpdateInput {
     code: String
     name: String
+    overview: String
     description: String
     credits: Int
+    learningObjectives: String
+    measurableOutcomes: String
+    topicsCovered: String
+    textbooks: String
+    deliveryFormat: String
+    gradingScheme: String
+    terms: String
+    professors: String
+    tags: String
     prerequisiteIds: [ID!]
+    corequisiteIds: [ID!]
   }
 `;
 

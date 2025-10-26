@@ -13,7 +13,6 @@ import {
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 
 export default function Dashboard() {
   const [open, setOpen] = useState(false);
@@ -127,129 +126,67 @@ const DashboardContent = () => {
       </div>
 
       <div className="p-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Current Modules"
-            value="6"
-            description="Active this term"
-          />
-          <StatCard
-            title="Completed"
-            value="24"
-            description="Total modules"
-          />
-          <StatCard
-            title="Average Grade"
-            value="3.8"
-            description="Current GPA"
-          />
-          <StatCard
-            title="Credits"
-            value="108"
-            description="Earned credits"
-          />
+        {/* Quick Links Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Link href="/dashboard/modules">
+            <div className="bg-white border-4 border-[#111110] p-8 hover:bg-[#fcfbfa] transition-colors cursor-pointer">
+              <IconBook className="h-12 w-12 text-[#111110] mb-4" />
+              <h2 className="text-2xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-2">
+                Browse Modules
+              </h2>
+              <p className="text-[#111110] opacity-70">
+                Explore all 33 available ISTD modules
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/dashboard/planner">
+            <div className="bg-white border-4 border-[#111110] p-8 hover:bg-[#fcfbfa] transition-colors cursor-pointer">
+              <IconCalendar className="h-12 w-12 text-[#111110] mb-4" />
+              <h2 className="text-2xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-2">
+                Plan Your Path
+              </h2>
+              <p className="text-[#111110] opacity-70">
+                Design your academic journey term by term
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/dashboard/schedule">
+            <div className="bg-white border-4 border-[#111110] p-8 hover:bg-[#fcfbfa] transition-colors cursor-pointer">
+              <IconChartBar className="h-12 w-12 text-[#111110] mb-4" />
+              <h2 className="text-2xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-2">
+                View Schedule
+              </h2>
+              <p className="text-[#111110] opacity-70">
+                Check your upcoming classes and events
+              </p>
+            </div>
+          </Link>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Current Modules */}
-          <div className="lg:col-span-2">
-            <div className="bg-white border-4 border-[#111110] p-8">
-              <h2 className="text-2xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-6">
-                Current Modules
-              </h2>
-              <div className="space-y-4">
-                <ModuleCard
-                  code="50.001"
-                  name="Information Systems & Programming"
-                  progress={75}
-                />
-                <ModuleCard
-                  code="50.002"
-                  name="Computation Structures"
-                  progress={60}
-                />
-                <ModuleCard
-                  code="50.003"
-                  name="Elements of Software Construction"
-                  progress={85}
-                />
-                <ModuleCard
-                  code="50.004"
-                  name="Introduction to Algorithms"
-                  progress={70}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Upcoming Events */}
-          <div className="lg:col-span-1">
-            <div className="bg-white border-4 border-[#111110] p-8 mb-6">
-              <h2 className="text-xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-6">
-                Upcoming
-              </h2>
-              <div className="space-y-4">
-                <EventCard
-                  title="Algorithms Quiz"
-                  date="Tomorrow"
-                  time="2:00 PM"
-                />
-                <EventCard
-                  title="Software Project Due"
-                  date="Dec 15"
-                  time="11:59 PM"
-                />
-                <EventCard
-                  title="Midterm Exam"
-                  date="Dec 20"
-                  time="9:00 AM"
-                />
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-white border-4 border-[#111110] p-8">
-              <h2 className="text-xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-6">
-                Quick Actions
-              </h2>
-              <div className="space-y-3">
-                <button className="w-full bg-[#111110] hover:bg-[#dcbd8e] hover:text-[#111110] text-white py-3 px-4 font-bold transition-all duration-200 uppercase tracking-[0.1em] text-xs border-2 border-[#111110]">
-                  Enroll Module
-                </button>
-                <button className="w-full bg-transparent text-[#111110] py-3 px-4 font-bold border-2 border-[#111110] hover:bg-[#111110] hover:text-white transition-all duration-200 uppercase tracking-[0.1em] text-xs">
-                  View Schedule
-                </button>
-                <button className="w-full bg-transparent text-[#111110] py-3 px-4 font-bold border-2 border-[#111110] hover:bg-[#111110] hover:text-white transition-all duration-200 uppercase tracking-[0.1em] text-xs">
-                  Check Grades
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="mt-6 bg-white border-4 border-[#111110] p-8">
-          <h2 className="text-2xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-6">
-            Recent Activity
+        {/* Welcome Section */}
+        <div className="mt-8 bg-white border-4 border-[#111110] p-12 text-center">
+          <h2 className="text-3xl font-bold text-[#111110] uppercase tracking-[0.1em] mb-4">
+            Welcome to MODSutd
           </h2>
-          <div className="space-y-3">
-            <ActivityItem
-              action="Submitted assignment"
-              module="50.003"
-              time="2 hours ago"
-            />
-            <ActivityItem
-              action="Completed quiz"
-              module="50.001"
-              time="1 day ago"
-            />
-            <ActivityItem
-              action="Enrolled in module"
-              module="50.004"
-              time="3 days ago"
-            />
+          <p className="text-[#111110] opacity-70 text-lg max-w-2xl mx-auto">
+            Your comprehensive platform for managing academic modules at SUTD. Browse through modules,
+            plan your academic path, and track your progress throughout your journey.
+          </p>
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              href="/dashboard/modules"
+              className="bg-[#111110] hover:bg-[#dcbd8e] hover:text-[#111110] text-white px-8 py-4 font-bold transition-all duration-200 uppercase tracking-[0.1em] text-sm border-2 border-[#111110]"
+            >
+              Explore Modules
+            </Link>
+            <Link
+              href="/dashboard/planner"
+              className="bg-transparent text-[#111110] px-8 py-4 font-bold border-2 border-[#111110] hover:bg-[#111110] hover:text-white transition-all duration-200 uppercase tracking-[0.1em] text-sm"
+            >
+              Start Planning
+            </Link>
           </div>
         </div>
       </div>
@@ -257,94 +194,3 @@ const DashboardContent = () => {
   );
 };
 
-const StatCard = ({
-  title,
-  value,
-  description,
-}: {
-  title: string;
-  value: string;
-  description: string;
-}) => {
-  return (
-    <div className="bg-white border-4 border-[#111110] p-6 hover:bg-[#fcfbfa] transition-colors">
-      <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em] mb-2">
-        {title}
-      </p>
-      <p className="text-4xl font-bold text-[#111110] mb-2">{value}</p>
-      <p className="text-sm text-[#111110] opacity-70">{description}</p>
-    </div>
-  );
-};
-
-const ModuleCard = ({
-  code,
-  name,
-  progress,
-}: {
-  code: string;
-  name: string;
-  progress: number;
-}) => {
-  return (
-    <div className="border-2 border-[#111110] p-4 hover:bg-[#fcfbfa] transition-colors">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em]">
-            {code}
-          </p>
-          <p className="text-sm text-[#111110] mt-1">{name}</p>
-        </div>
-        <span className="text-xs font-bold text-[#111110]">{progress}%</span>
-      </div>
-      <div className="w-full h-2 bg-[#fcfbfa] border border-[#111110]">
-        <div
-          className="h-full bg-[#dcbd8e] transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </div>
-  );
-};
-
-const EventCard = ({
-  title,
-  date,
-  time,
-}: {
-  title: string;
-  date: string;
-  time: string;
-}) => {
-  return (
-    <div className="border-2 border-[#111110] p-3 hover:bg-[#fcfbfa] transition-colors">
-      <p className="text-sm font-bold text-[#111110] mb-1">{title}</p>
-      <div className="flex justify-between text-xs text-[#111110] opacity-70">
-        <span>{date}</span>
-        <span>{time}</span>
-      </div>
-    </div>
-  );
-};
-
-const ActivityItem = ({
-  action,
-  module,
-  time,
-}: {
-  action: string;
-  module: string;
-  time: string;
-}) => {
-  return (
-    <div className="flex justify-between items-center border-b-2 border-[#111110] pb-3 last:border-0">
-      <div>
-        <p className="text-sm font-bold text-[#111110]">{action}</p>
-        <p className="text-xs text-[#111110] opacity-70 uppercase tracking-wider mt-1">
-          {module}
-        </p>
-      </div>
-      <span className="text-xs text-[#111110] opacity-70">{time}</span>
-    </div>
-  );
-};

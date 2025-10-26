@@ -41,8 +41,18 @@ async function createTables() {
         id SERIAL PRIMARY KEY,
         code VARCHAR(20) UNIQUE NOT NULL,
         name VARCHAR(255) NOT NULL,
+        overview TEXT,
         description TEXT,
         credits INTEGER NOT NULL DEFAULT 4,
+        learning_objectives TEXT,
+        measurable_outcomes TEXT,
+        topics_covered TEXT,
+        textbooks TEXT,
+        delivery_format TEXT,
+        grading_scheme TEXT,
+        terms TEXT,
+        professors TEXT,
+        tags VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )

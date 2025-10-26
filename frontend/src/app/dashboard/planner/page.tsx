@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import {
   IconHome,
@@ -20,112 +20,49 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
-// Sample module data with term availability and prerequisites
-const AVAILABLE_MODULES = [
-  {
-    id: 1,
-    code: '50.001',
-    name: 'Information Systems & Programming',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 1'],
-    prerequisites: [],
-    corequisites: []
-  },
-  {
-    id: 2,
-    code: '50.002',
-    name: 'Computation Structures',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 2'],
-    prerequisites: ['50.001'],
-    corequisites: []
-  },
-  {
-    id: 3,
-    code: '50.003',
-    name: 'Elements of Software Construction',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 3'],
-    prerequisites: ['50.001'],
-    corequisites: []
-  },
-  {
-    id: 4,
-    code: '50.004',
-    name: 'Introduction to Algorithms',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 4', 'Term 5'],
-    prerequisites: ['50.001'],
-    corequisites: []
-  },
-  {
-    id: 5,
-    code: '50.005',
-    name: 'Computer System Engineering',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 5', 'Term 6'],
-    prerequisites: ['50.002'],
-    corequisites: []
-  },
-  {
-    id: 6,
-    code: '50.034',
-    name: 'Introduction to Probability and Statistics',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 3', 'Term 4'],
-    prerequisites: [],
-    corequisites: []
-  },
-  {
-    id: 7,
-    code: '50.042',
-    name: 'Foundations of Cybersecurity',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 6', 'Term 7'],
-    prerequisites: ['50.005'],
-    corequisites: []
-  },
-  {
-    id: 8,
-    code: '50.043',
-    name: 'Database and Big Data Systems',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 5', 'Term 6'],
-    prerequisites: ['50.004'],
-    corequisites: []
-  },
-  {
-    id: 9,
-    code: '50.012',
-    name: 'Networks',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 4', 'Term 5', 'Term 6'],
-    prerequisites: ['50.002'],
-    corequisites: []
-  },
-  {
-    id: 10,
-    code: '50.021',
-    name: 'Artificial Intelligence',
-    pillar: 'ISTD',
-    credits: 4,
-    availableTerms: ['Term 6', 'Term 7', 'Term 8'],
-    prerequisites: ['50.004', '50.034'],
-    corequisites: []
-  },
-];
+const GET_COURSES_QUERY = `
+  query GetCourses {
+    courses {
+      id
+      code
+      name
+      credits
+      terms
+      tags
+      prerequisites {
+        code
+      }
+      corequisites {
+        code
+      }
+    }
+  }
+`;
+
+interface ModuleFromAPI {
+  id: string;
+  code: string;
+  name: string;
+  credits: number;
+  terms?: string;
+  tags?: string;
+  prerequisites: Array<{ code: string }>;
+  corequisites: Array<{ code: string }>;
+}
+
+interface AvailableModule {
+  id: string;
+  code: string;
+  name: string;
+  pillar: string;
+  credits: number;
+  availableTerms: string[];
+  prerequisites: string[];
+  corequisites: string[];
+}
 
 interface PlannedModule {
-  id: number;
+  id: string;
   code: string;
   name: string;
   credits: number;
@@ -136,6 +73,26 @@ interface TermPlan {
 }
 
 const TERMS = ['Term 1', 'Term 2', 'Term 3', 'Term 4', 'Term 5', 'Term 6', 'Term 7', 'Term 8'];
+
+// Transform API data to planner format
+const transformModuleForPlanner = (module: ModuleFromAPI): AvailableModule => {
+  const terms = module.terms || '';
+  const availableTerms = terms
+    .split(',')
+    .map((t) => `Term ${t.trim()}`)
+    .filter((t) => t !== 'Term ');
+
+  return {
+    id: module.id,
+    code: module.code,
+    name: module.name,
+    pillar: module.tags || 'ISTD',
+    credits: module.credits,
+    availableTerms,
+    prerequisites: module.prerequisites.map((p) => p.code),
+    corequisites: module.corequisites.map((c) => c.code),
+  };
+};
 
 interface TermBox {
   name: string;
@@ -249,6 +206,40 @@ export default function PlannerPage() {
   const [showModuleSelector, setShowModuleSelector] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [availableModules, setAvailableModules] = useState<AvailableModule[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch modules from API
+  useEffect(() => {
+    async function fetchModules() {
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: GET_COURSES_QUERY,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+
+        const modules = result.data.courses.map(transformModuleForPlanner);
+        setAvailableModules(modules);
+      } catch (err) {
+        console.error('Error fetching modules:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchModules();
+  }, []);
 
   const links = [
     {
@@ -302,7 +293,7 @@ export default function PlannerPage() {
     });
   };
 
-  const removeModuleFromTerm = (term: string, moduleId: number) => {
+  const removeModuleFromTerm = (term: string, moduleId: string) => {
     setTermPlans({
       ...termPlans,
       [term]: {
@@ -334,22 +325,6 @@ export default function PlannerPage() {
     );
   };
 
-  const getAllPlannedModuleIds = () => {
-    const ids = new Set<number>();
-    Object.values(termPlans).forEach((plan) => {
-      plan.modules.forEach((m) => ids.add(m.id));
-    });
-    return ids;
-  };
-
-  const getAllPlannedModuleCodes = () => {
-    const codes = new Set<string>();
-    Object.values(termPlans).forEach((plan) => {
-      plan.modules.forEach((m) => codes.add(m.code));
-    });
-    return codes;
-  };
-
   const getCompletedModulesBeforeTerm = (term: string) => {
     const termIndex = TERMS.indexOf(term);
     const codes = new Set<string>();
@@ -362,7 +337,7 @@ export default function PlannerPage() {
     return codes;
   };
 
-  const checkPrerequisites = (module: typeof AVAILABLE_MODULES[0], term: string) => {
+  const checkPrerequisites = (module: AvailableModule, term: string) => {
     const completedCodes = getCompletedModulesBeforeTerm(term);
     const unmetPrereqs = module.prerequisites.filter(prereq => !completedCodes.has(prereq));
     return {
@@ -371,7 +346,7 @@ export default function PlannerPage() {
     };
   };
 
-  const checkCorequisites = (module: typeof AVAILABLE_MODULES[0], term: string) => {
+  const checkCorequisites = (module: AvailableModule, term: string) => {
     const completedCodes = getCompletedModulesBeforeTerm(term);
     const currentTermCodes = new Set(termPlans[term].modules.map(m => m.code));
 
@@ -390,15 +365,13 @@ export default function PlannerPage() {
     setSetupComplete(true);
   };
 
-  const filteredModules = selectedTerm ? AVAILABLE_MODULES.filter((module) => {
+  const filteredModules = selectedTerm ? availableModules.filter((module) => {
     const matchesSearch =
       module.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       module.name.toLowerCase().includes(searchQuery.toLowerCase());
     const isAvailableInTerm = module.availableTerms.includes(selectedTerm);
     return matchesSearch && isAvailableInTerm;
   }) : [];
-
-  const plannedModuleIds = getAllPlannedModuleIds();
 
   // Show setup form if not completed
   if (!setupComplete) {
@@ -454,7 +427,13 @@ export default function PlannerPage() {
         </SidebarBody>
       </Sidebar>
 
-      <div className="flex-1 overflow-y-auto">
+      <motion.div
+        className="flex-1 overflow-y-auto"
+        animate={{
+          marginRight: showModuleSelector ? '600px' : '0px',
+        }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      >
         {/* Header */}
         <div className="border-b-2 border-[#111110] bg-white px-8 py-6">
           <div className="flex justify-between items-start mb-4">
@@ -579,15 +558,16 @@ export default function PlannerPage() {
                 className="grid grid-cols-4 border-b border-gray-100 last:border-0"
               >
                 {row.map((cell, cellIdx) => {
-                  const isPlannableTerm = cell?.name.startsWith('Term') && termPlans[cell.name];
+                  const isPlannableTerm = cell?.name.startsWith('Term') && cell.name && termPlans[cell.name];
                   return (
                     <TermCalendarBox
                       key={`${rowIdx}-${cellIdx}`}
                       term={cell}
                       isLast={cellIdx === 3}
-                      onTermClick={isPlannableTerm ? () => openModuleSelector(cell.name) : undefined}
-                      moduleCount={isPlannableTerm ? termPlans[cell.name].modules.length : 0}
-                      credits={isPlannableTerm ? getTermCredits(cell.name) : 0}
+                      onTermClick={isPlannableTerm && cell ? () => openModuleSelector(cell.name) : undefined}
+                      moduleCount={isPlannableTerm && cell ? termPlans[cell.name].modules.length : 0}
+                      credits={isPlannableTerm && cell ? getTermCredits(cell.name) : 0}
+                      modules={isPlannableTerm && cell ? termPlans[cell.name].modules : undefined}
                     />
                   );
                 })}
@@ -595,30 +575,17 @@ export default function PlannerPage() {
             ))}
           </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Module Selector Side Panel */}
       {showModuleSelector && selectedTerm && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
-            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-            transition={{ duration: 0.3 }}
-            onClick={closeModuleSelector}
-            className="fixed inset-0 bg-[#111110] bg-opacity-40 z-40"
-            style={{ backdropFilter: 'blur(8px)' }}
-          />
-
-          {/* Side Panel */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full md:w-[600px] lg:w-[700px] bg-white border-l-4 border-[#111110] z-50 flex flex-col shadow-2xl"
-          >
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="fixed right-0 top-0 h-full w-[600px] bg-white border-l-4 border-[#111110] z-50 flex flex-col shadow-2xl"
+        >
             {/* Panel Header */}
             <div className="border-b-2 border-[#111110] p-6 bg-[#fcfbfa]">
               <div className="flex justify-between items-start mb-4">
@@ -816,7 +783,6 @@ export default function PlannerPage() {
               )}
             </div>
           </motion.div>
-        </>
       )}
     </div>
   );
@@ -1050,12 +1016,14 @@ const TermCalendarBox = ({
   onTermClick,
   moduleCount,
   credits,
+  modules,
 }: {
   term: TermBox | null;
   isLast: boolean;
   onTermClick?: () => void;
   moduleCount: number;
   credits: number;
+  modules?: PlannedModule[];
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -1063,7 +1031,7 @@ const TermCalendarBox = ({
     return (
       <div
         className={cn(
-          'min-h-[160px] bg-gray-50/50',
+          'min-h-[380px] bg-gray-50/50',
           !isLast && 'border-r border-gray-100'
         )}
       />
@@ -1083,7 +1051,7 @@ const TermCalendarBox = ({
         transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] },
       } : {}}
       className={cn(
-        'min-h-[160px] p-6 relative',
+        'min-h-[380px] p-6 relative',
         !isLast && 'border-r border-gray-100',
         term.color,
         term.striped && 'relative overflow-hidden',
@@ -1189,6 +1157,28 @@ const TermCalendarBox = ({
           >
             {term.subtitle}
           </motion.p>
+        )}
+
+        {/* Module tabs */}
+        {modules && modules.length > 0 && (
+          <div className="mt-3 space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
+            {modules.map((module) => (
+              <motion.div
+                key={module.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-white/80 backdrop-blur-sm border-2 border-slate-700 px-2 py-1 text-[10px] font-bold text-slate-800 uppercase tracking-wider shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate">{module.code}</span>
+                  <span className="text-[9px] opacity-70 shrink-0">{module.credits}CR</span>
+                </div>
+                <div className="text-[9px] font-normal normal-case opacity-80 truncate mt-0.5">
+                  {module.name}
+                </div>
+              </motion.div>
+            ))}
+          </div>
         )}
 
         {/* Module count and credits for clickable terms */}

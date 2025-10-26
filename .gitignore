@@ -13,6 +13,7 @@ build/
 .env.production.local
 .env.staging.local
 *.env
+!.env.example
 
 # Logs
 *.log

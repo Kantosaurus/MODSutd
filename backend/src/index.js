@@ -2,7 +2,10 @@ const express = require('express');
 const { ApolloServer } = require('@apollo/server');
 const { startStandaloneServer } = require('@apollo/server/standalone');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+
+// Load environment variables from root .env file
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const typeDefs = require('./schema/typeDefs');
 const resolvers = require('./resolvers');

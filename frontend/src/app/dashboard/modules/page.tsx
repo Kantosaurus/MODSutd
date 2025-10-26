@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar, SidebarBody, SidebarLink } from '@/components/ui/sidebar';
 import {
   IconHome,
@@ -14,100 +14,85 @@ import {
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-
-// Sample module data
-const MODULES = [
-  {
-    id: 1,
-    code: '50.001',
-    name: 'Information Systems & Programming',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 1',
-    prerequisites: [],
-    description: 'Introduction to information systems and programming fundamentals using Python.',
-  },
-  {
-    id: 2,
-    code: '50.002',
-    name: 'Computation Structures',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 2',
-    prerequisites: ['50.001'],
-    description: 'Digital systems, Boolean algebra, combinational and sequential circuits.',
-  },
-  {
-    id: 3,
-    code: '50.003',
-    name: 'Elements of Software Construction',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 3',
-    prerequisites: ['50.001'],
-    description: 'Software engineering principles, design patterns, and testing methodologies.',
-  },
-  {
-    id: 4,
-    code: '50.004',
-    name: 'Introduction to Algorithms',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 4',
-    prerequisites: ['50.001'],
-    description: 'Algorithm design, analysis, sorting, searching, and graph algorithms.',
-  },
-  {
-    id: 5,
-    code: '50.005',
-    name: 'Computer System Engineering',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 5',
-    prerequisites: ['50.002'],
-    description: 'Operating systems, processes, memory management, and file systems.',
-  },
-  {
-    id: 6,
-    code: '50.034',
-    name: 'Introduction to Probability and Statistics',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 3',
-    prerequisites: [],
-    description: 'Probability theory, statistical inference, and data analysis.',
-  },
-  {
-    id: 7,
-    code: '50.042',
-    name: 'Foundations of Cybersecurity',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 6',
-    prerequisites: ['50.005'],
-    description: 'Cryptography, network security, and secure system design.',
-  },
-  {
-    id: 8,
-    code: '50.043',
-    name: 'Database and Big Data Systems',
-    pillar: 'ISTD',
-    credits: 4,
-    term: 'Term 5',
-    prerequisites: ['50.004'],
-    description: 'Relational databases, SQL, NoSQL, and distributed data processing.',
-  },
-];
 
 const PILLARS = ['All', 'ISTD', 'EPD', 'ESD', 'ASD'];
-const TERMS = ['All', 'Term 1', 'Term 2', 'Term 3', 'Term 4', 'Term 5', 'Term 6'];
+const TERMS = ['All', 'Term 1', 'Term 2', 'Term 3', 'Term 4', 'Term 5', 'Term 6', 'Term 7', 'Term 8'];
+
+interface Module {
+  id: string;
+  code: string;
+  name: string;
+  overview?: string;
+  description?: string;
+  credits: number;
+  terms?: string;
+  tags?: string;
+  prerequisites: Array<{
+    id: string;
+    code: string;
+    name: string;
+  }>;
+}
+
+const GET_COURSES_QUERY = `
+  query GetCourses {
+    courses {
+      id
+      code
+      name
+      overview
+      description
+      credits
+      terms
+      tags
+      prerequisites {
+        id
+        code
+        name
+      }
+    }
+  }
+`;
 
 export default function ModulesPage() {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPillar, setSelectedPillar] = useState('All');
   const [selectedTerm, setSelectedTerm] = useState('All');
+  const [modules, setModules] = useState<Module[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: GET_COURSES_QUERY,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.errors) {
+          throw new Error(result.errors[0].message);
+        }
+
+        setModules(result.data.courses || []);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch courses');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchCourses();
+  }, []);
 
   const links = [
     {
@@ -147,12 +132,19 @@ export default function ModulesPage() {
     },
   ];
 
-  const filteredModules = MODULES.filter((module) => {
+  const filteredModules = modules.filter((module) => {
     const matchesSearch =
       module.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       module.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPillar = selectedPillar === 'All' || module.pillar === selectedPillar;
-    const matchesTerm = selectedTerm === 'All' || module.term === selectedTerm;
+
+    // Extract pillar from tags (e.g., "ISTD" from tags field)
+    const pillar = module.tags || 'ISTD';
+    const matchesPillar = selectedPillar === 'All' || pillar === selectedPillar;
+
+    // Match term (terms field is like "1, 3, 5" or "1, 2, 3, 4, 5, 6, 7, 8")
+    const matchesTerm = selectedTerm === 'All' ||
+      (module.terms && module.terms.includes(selectedTerm.replace('Term ', '')));
+
     return matchesSearch && matchesPillar && matchesTerm;
   });
 
@@ -251,29 +243,52 @@ export default function ModulesPage() {
               </div>
             </div>
 
-            {/* Results Count */}
-            <div className="mb-6">
-              <p className="text-sm font-bold text-[#111110] uppercase tracking-[0.15em]">
-                {filteredModules.length} Module{filteredModules.length !== 1 ? 's' : ''} Found
-              </p>
-            </div>
-
-            {/* Module Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredModules.map((module) => (
-                <ModuleCard key={module.id} module={module} />
-              ))}
-            </div>
-
-            {filteredModules.length === 0 && (
+            {/* Loading State */}
+            {loading && (
               <div className="bg-white border-4 border-[#111110] p-12 text-center">
                 <p className="text-[#111110] font-bold uppercase tracking-wider">
-                  No modules found
-                </p>
-                <p className="text-[#111110] opacity-70 mt-2">
-                  Try adjusting your search or filters
+                  Loading modules...
                 </p>
               </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="bg-white border-4 border-[#111110] p-12 text-center">
+                <p className="text-[#111110] font-bold uppercase tracking-wider">
+                  Error: {error}
+                </p>
+              </div>
+            )}
+
+            {/* Results */}
+            {!loading && !error && (
+              <>
+                {/* Results Count */}
+                <div className="mb-6">
+                  <p className="text-sm font-bold text-[#111110] uppercase tracking-[0.15em]">
+                    {filteredModules.length} Module{filteredModules.length !== 1 ? 's' : ''} Found
+                  </p>
+                </div>
+
+                {/* Module Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {filteredModules.map((module) => (
+                    <ModuleCard key={module.id} module={module} />
+                  ))}
+                </div>
+
+                {filteredModules.length === 0 && (
+                  <div className="bg-white border-4 border-[#111110] p-12 text-center">
+                    <p className="text-[#111110] font-bold uppercase tracking-wider">
+                      No modules found
+                    </p>
+                    <p className="text-[#111110] opacity-70 mt-2">
+                      Try adjusting your search or filters
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -311,34 +326,28 @@ const LogoIcon = () => {
   );
 };
 
-interface Module {
-  id: number;
-  code: string;
-  name: string;
-  pillar: string;
-  credits: number;
-  term: string;
-  prerequisites: string[];
-  description: string;
-}
-
 const ModuleCard = ({ module }: { module: Module }) => {
-  return (
-    <div className="bg-white border-4 border-[#111110] p-6 hover:bg-[#fcfbfa] transition-colors">
-      <div className="mb-4">
-        <div className="flex items-center gap-3 mb-2">
-          <h3 className="text-xl font-bold text-[#111110] uppercase tracking-[0.1em]">
-            {module.code}
-          </h3>
-          <span className="px-2 py-1 border border-[#111110] text-[#111110] text-xs font-bold uppercase tracking-wider">
-            {module.pillar}
-          </span>
-        </div>
-        <h4 className="text-sm text-[#111110] font-semibold">{module.name}</h4>
-      </div>
+  const pillar = module.tags || 'ISTD';
+  const description = module.overview || module.description || 'No description available';
+  const termsOffered = module.terms ? `Term ${module.terms.split(',').map(t => t.trim()).join(', ')}` : 'N/A';
 
-      <p className="text-sm text-[#111110] opacity-70 mb-4 leading-relaxed">
-        {module.description}
+  return (
+    <Link href={`/dashboard/modules/${module.code}`}>
+      <div className="bg-white border-4 border-[#111110] p-6 hover:bg-[#fcfbfa] transition-colors cursor-pointer">
+        <div className="mb-4">
+          <div className="flex items-center gap-3 mb-2">
+            <h3 className="text-xl font-bold text-[#111110] uppercase tracking-[0.1em]">
+              {module.code}
+            </h3>
+            <span className="px-2 py-1 border border-[#111110] text-[#111110] text-xs font-bold uppercase tracking-wider">
+              {pillar}
+            </span>
+          </div>
+          <h4 className="text-sm text-[#111110] font-semibold">{module.name}</h4>
+        </div>
+
+      <p className="text-sm text-[#111110] opacity-70 mb-4 leading-relaxed line-clamp-3">
+        {description}
       </p>
 
       <div className="grid grid-cols-2 gap-4 pt-4 border-t-2 border-[#111110]">
@@ -350,13 +359,13 @@ const ModuleCard = ({ module }: { module: Module }) => {
         </div>
         <div>
           <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em] mb-1">
-            Term
+            Terms
           </p>
-          <p className="text-sm text-[#111110]">{module.term}</p>
+          <p className="text-sm text-[#111110]">{termsOffered}</p>
         </div>
       </div>
 
-      {module.prerequisites.length > 0 && (
+      {module.prerequisites && module.prerequisites.length > 0 && (
         <div className="mt-4 pt-4 border-t-2 border-[#111110]">
           <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em] mb-2">
             Prerequisites
@@ -364,15 +373,16 @@ const ModuleCard = ({ module }: { module: Module }) => {
           <div className="flex flex-wrap gap-2">
             {module.prerequisites.map((prereq) => (
               <span
-                key={prereq}
+                key={prereq.id}
                 className="px-2 py-1 bg-[#fcfbfa] border border-[#111110] text-[#111110] text-xs font-semibold"
               >
-                {prereq}
+                {prereq.code}
               </span>
             ))}
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Link>
   );
 };

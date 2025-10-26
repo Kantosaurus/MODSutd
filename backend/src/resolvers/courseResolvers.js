@@ -13,6 +13,14 @@ const courseResolvers = {
       return result.rows[0];
     },
 
+    courseByCode: async (parent, { code }) => {
+      const result = await pool.query(
+        'SELECT * FROM courses WHERE code = $1',
+        [code]
+      );
+      return result.rows[0];
+    },
+
     coursesByCode: async (parent, { code }) => {
       const result = await pool.query(
         'SELECT * FROM courses WHERE code ILIKE $1',
@@ -25,13 +33,47 @@ const courseResolvers = {
       const session = getGraphDBSession();
       try {
         const result = await session.run(
-          `MATCH (c:Course {id: $courseId})<-[:PREREQUISITE_OF]-(prereq:Course)
+          `MATCH (c:Course {id: $courseId})-[:REQUIRES]->(prereq:Course)
            RETURN prereq`,
           { courseId }
         );
-        
-        const prerequisites = result.records.map(record => record.get('prereq').properties);
-        return prerequisites;
+
+        const prerequisiteIds = result.records.map(record => record.get('prereq').properties.id);
+
+        if (prerequisiteIds.length === 0) return [];
+
+        // Fetch full course details from PostgreSQL
+        const coursesResult = await pool.query(
+          'SELECT * FROM courses WHERE id = ANY($1)',
+          [prerequisiteIds]
+        );
+
+        return coursesResult.rows;
+      } finally {
+        await session.close();
+      }
+    },
+
+    courseCorequisites: async (parent, { courseId }) => {
+      const session = getGraphDBSession();
+      try {
+        const result = await session.run(
+          `MATCH (c:Course {id: $courseId})-[:COREQUISITE]->(coreq:Course)
+           RETURN coreq`,
+          { courseId }
+        );
+
+        const corequisiteIds = result.records.map(record => record.get('coreq').properties.id);
+
+        if (corequisiteIds.length === 0) return [];
+
+        // Fetch full course details from PostgreSQL
+        const coursesResult = await pool.query(
+          'SELECT * FROM courses WHERE id = ANY($1)',
+          [corequisiteIds]
+        );
+
+        return coursesResult.rows;
       } finally {
         await session.close();
       }
@@ -130,17 +172,60 @@ const courseResolvers = {
       const session = getGraphDBSession();
       try {
         const result = await session.run(
-          `MATCH (c:Course {id: $courseId})<-[:PREREQUISITE_OF]-(prereq:Course)
+          `MATCH (c:Course {id: $courseId})-[:REQUIRES]->(prereq:Course)
            RETURN prereq`,
-          { courseId: parent.id }
+          { courseId: parent.id.toString() }
         );
-        
-        const prerequisites = result.records.map(record => record.get('prereq').properties);
-        return prerequisites;
+
+        const prerequisiteIds = result.records.map(record => record.get('prereq').properties.id);
+
+        if (prerequisiteIds.length === 0) return [];
+
+        // Fetch full course details from PostgreSQL
+        const coursesResult = await pool.query(
+          'SELECT * FROM courses WHERE id = ANY($1)',
+          [prerequisiteIds]
+        );
+
+        return coursesResult.rows;
       } finally {
         await session.close();
       }
     },
+
+    corequisites: async (parent) => {
+      const session = getGraphDBSession();
+      try {
+        const result = await session.run(
+          `MATCH (c:Course {id: $courseId})-[:COREQUISITE]->(coreq:Course)
+           RETURN coreq`,
+          { courseId: parent.id.toString() }
+        );
+
+        const corequisiteIds = result.records.map(record => record.get('coreq').properties.id);
+
+        if (corequisiteIds.length === 0) return [];
+
+        // Fetch full course details from PostgreSQL
+        const coursesResult = await pool.query(
+          'SELECT * FROM courses WHERE id = ANY($1)',
+          [corequisiteIds]
+        );
+
+        return coursesResult.rows;
+      } finally {
+        await session.close();
+      }
+    },
+
+    // Map database fields to GraphQL fields (camelCase conversion)
+    learningObjectives: (parent) => parent.learning_objectives,
+    measurableOutcomes: (parent) => parent.measurable_outcomes,
+    topicsCovered: (parent) => parent.topics_covered,
+    deliveryFormat: (parent) => parent.delivery_format,
+    gradingScheme: (parent) => parent.grading_scheme,
+    createdAt: (parent) => parent.created_at,
+    updatedAt: (parent) => parent.updated_at,
   },
 };
 

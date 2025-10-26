@@ -41,77 +41,158 @@ A modern web application for managing academic modules and student data at Singa
    cd MODSutd
    ```
 
-2. **Start all services**
+2. **Configure environment variables**
    ```bash
-   # Production build
-   docker-compose up -d
+   # Copy the example environment file
+   cp .env.example .env
+
+   # Edit .env with your preferred settings (optional - defaults work for local dev)
+   # For production, make sure to change passwords and secrets!
+   ```
+
+3. **Start all services**
+   ```bash
+   # Production build (automatically runs database migrations)
+   docker-compose up -d --build
 
    # Development build (with hot reload for backend)
    docker-compose -f docker-compose.dev.yml up -d
    ```
 
-3. **Access the application**
+   **Note**: The backend container automatically:
+   - Waits for PostgreSQL and Neo4j to be ready
+   - Runs database migrations from `ISTD Mods.csv`
+   - Imports all module data and relationships
+   - Starts the GraphQL server
+
+4. **Access the application**
    - Frontend: http://localhost:3000
    - Backend GraphQL: http://localhost:4000/graphql
    - Neo4j Browser: http://localhost:7474
+   - PostgreSQL: localhost:5432 (user: postgres, password: password)
 
 ### Local Development
 
-1. **Start databases only**
+For local development without Docker:
+
+1. **Configure environment for local development**
    ```bash
-   docker-compose -f docker-compose.dev.yml up postgres neo4j -d
+   # Copy root .env.example to .env if you haven't already
+   cp .env.example .env
+
+   # Edit .env and uncomment the local development overrides:
+   # NODE_ENV=development
+   # DB_HOST=localhost
+   # NEO4J_URI=bolt://localhost:7687
    ```
 
-2. **Setup backend**
+2. **Start databases only**
+   ```bash
+   docker-compose up postgres neo4j -d
+   ```
+
+3. **Setup backend**
    ```bash
    cd backend
    npm install
-   cp .env.example .env
    npm run dev
    ```
 
-3. **Setup frontend**
+4. **Setup frontend**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
 
+   **Note**: The backend and frontend will automatically read from the root `.env` file.
+
+## 📚 Module System
+
+MODSutd includes a comprehensive module management system with:
+
+### Features
+- **Complete Module Information**: All ISTD modules with detailed information
+- **Prerequisites & Corequisites**: Visual prerequisite chains and corequisite tracking
+- **Individual Module Pages**: Detailed pages for each module at `/dashboard/modules/[code]`
+- **Module Browser**: Search and filter modules by code, name, and type
+- **Term Planner**: Plan your modules across terms with prerequisite validation
+- **Graph Relationships**: Neo4j-powered prerequisite/corequisite tracking
+
+### Module Data
+Module data is stored in `ISTD Mods.csv` and includes:
+- Module code, name, and credits
+- Overview and learning objectives
+- Measurable outcomes and topics covered
+- Prerequisites and corequisites
+- Terms offered and teaching faculty
+- Textbooks and delivery format
+
+### Running Migrations Manually
+
+If you need to re-run migrations (e.g., after updating the CSV):
+
+```bash
+# Using Docker
+docker exec modsutd-backend npm run migrate
+
+# Local development
+cd backend
+npm run migrate
+```
+
 ## 🗄️ Database Schema
 
 ### PostgreSQL Tables
 - `users` - User accounts and profiles
-- `courses` - Course information
+- `courses` - Module information with all details
 - `enrollments` - Student course enrollments
+- `password_reset_tokens` - Password reset tokens
 
 ### Neo4j Graph Schema
-- `User` nodes with `ENROLLED_IN` relationships to `Course` nodes
-- `Course` nodes with `PREREQUISITE_OF` relationships for course dependencies
+- `Course` nodes with `REQUIRES` relationships for prerequisites
+- `Course` nodes with `COREQUISITE` relationships for corequisites
+- `User` nodes with `ENROLLED_IN` relationships (future feature)
 
 ## 🔧 Environment Variables
 
-Copy `backend/.env.example` to `backend/.env` and configure:
+All environment variables are centralized in the root `.env` file. Copy `.env.example` to `.env` and configure:
+
+```bash
+cp .env.example .env
+```
+
+### Key Configuration Options
+
+#### Server Configuration
+- `NODE_ENV` - Environment (development/production)
+- `BACKEND_PORT` - Backend API port (default: 4000)
+- `FRONTEND_PORT` - Frontend port (default: 3000)
+
+#### URLs
+- `FRONTEND_URL` - Frontend URL for CORS
+- `NEXT_PUBLIC_API_URL` - GraphQL API endpoint (exposed to browser)
+
+#### Security
+- `JWT_SECRET` - **⚠️ CHANGE THIS IN PRODUCTION!**
+
+#### Database Credentials
+- PostgreSQL: `DB_USER`, `DB_PASSWORD`, `DB_NAME`
+- Neo4j: `NEO4J_USER`, `NEO4J_PASSWORD`, `NEO4J_AUTH`
+
+**⚠️ Production Security Note**: Make sure to change all default passwords and secrets before deploying to production!
+
+### Local Development vs Docker
+
+The `.env` file works for both Docker and local development:
+- **Docker**: Uses service names (`postgres`, `neo4j`) for hosts
+- **Local Dev**: Uncomment and use `localhost` for database hosts
 
 ```env
-# Server Configuration
-PORT=4000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
-
-# JWT Configuration
-JWT_SECRET=your-super-secure-jwt-secret-key-here
-
-# PostgreSQL Configuration
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=modsutd
-DB_USER=postgres
-DB_PASSWORD=password
-
-# Neo4j GraphDB Configuration
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=password
+# For local development without Docker, uncomment these:
+# NODE_ENV=development
+# DB_HOST=localhost
+# NEO4J_URI=bolt://localhost:7687
 ```
 
 ## 📊 API Documentation
@@ -119,15 +200,16 @@ NEO4J_PASSWORD=password
 The GraphQL API provides:
 
 ### Queries
-- User management (`users`, `user`, `me`)
-- Course catalog (`courses`, `course`, `coursesByCode`)
-- Enrollment tracking (`enrollments`, `userEnrollments`)
-- Graph-based recommendations (`coursePrerequisites`, `recommendedCourses`)
+- User management: `users`, `user`, `me`
+- Course catalog: `courses`, `course`, `courseByCode`, `coursesByCode`
+- Prerequisites: `coursePrerequisites`, `courseCorequisites`
+- Enrollment tracking: `enrollments`, `userEnrollments`, `courseEnrollments`
+- Graph-based recommendations: `recommendedCourses`
 
 ### Mutations
-- Authentication (`register`, `login`)
-- Course management (`createCourse`, `updateCourse`, `deleteCourse`)
-- Enrollment operations (`enrollInCourse`, `dropCourse`, `updateGrade`)
+- Authentication: `register`, `login`, `requestPasswordReset`, `resetPassword`
+- Course management: `createCourse`, `updateCourse`, `deleteCourse`
+- Enrollment operations: `enrollInCourse`, `dropCourse`, `updateGrade`
 
 ## 🐳 Docker Services
 
