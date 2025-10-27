@@ -44,34 +44,83 @@ function parseRequirements(reqString) {
 }
 
 async function migrateModules() {
-  // Try different paths for CSV file (local vs Docker)
-  const possiblePaths = [
-    path.join(__dirname, '../../../ISTD Mods.csv'),  // Local development
-    path.join(__dirname, '../../ISTD Mods.csv'),      // In backend directory
-    '/app/ISTD Mods.csv',                              // Docker mount
-    path.join(process.cwd(), 'ISTD Mods.csv'),        // Current directory
-  ];
-
-  let csvPath = null;
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      csvPath = p;
-      break;
-    }
-  }
-
   console.log('📚 Starting module migration...');
 
-  if (!csvPath) {
-    console.error('❌ CSV file not found. Tried paths:', possiblePaths);
-    throw new Error('CSV file not found');
+  // Define CSV files to migrate with their pillar tags
+  const csvFiles = [
+    {
+      name: 'ISTD Mods',
+      tag: 'CSD',  // Tag as CSD pillar
+      possiblePaths: [
+        path.join(__dirname, '../../../frontend/src/Mods/ISTD Mods.csv'),  // Local development
+        '/app/mods/ISTD Mods.csv',                              // Docker mount
+        path.join(__dirname, '../../../ISTD Mods.csv'),  // Old location (fallback)
+        path.join(__dirname, '../../ISTD Mods.csv'),      // In backend directory
+        path.join(process.cwd(), 'ISTD Mods.csv'),        // Current directory
+      ]
+    },
+    {
+      name: 'Freshmore',
+      tag: 'Freshmore',  // Tag as Freshmore
+      possiblePaths: [
+        path.join(__dirname, '../../../frontend/src/Mods/Freshmore.csv'),  // Local development
+        '/app/mods/Freshmore.csv',                              // Docker mount
+        path.join(__dirname, '../../../Freshmore.csv'),  // Old location (fallback)
+        path.join(__dirname, '../../Freshmore.csv'),      // In backend directory
+        path.join(process.cwd(), 'Freshmore.csv'),        // Current directory
+      ]
+    },
+    {
+      name: 'ASD Mods',
+      tag: 'ASD',  // Tag as ASD pillar
+      possiblePaths: [
+        path.join(__dirname, '../../../frontend/src/Mods/ASD Mods.csv'),  // Local development
+        '/app/mods/ASD Mods.csv',                              // Docker mount
+        path.join(__dirname, '../../../ASD Mods.csv'),  // Old location (fallback)
+        path.join(__dirname, '../../ASD Mods.csv'),      // In backend directory
+        path.join(process.cwd(), 'ASD Mods.csv'),        // Current directory
+      ]
+    }
+  ];
+
+  // Find and parse all CSV files
+  let allModules = [];
+
+  for (const csvFile of csvFiles) {
+    let csvPath = null;
+    for (const p of csvFile.possiblePaths) {
+      if (fs.existsSync(p)) {
+        csvPath = p;
+        break;
+      }
+    }
+
+    if (!csvPath) {
+      console.warn(`⚠️  ${csvFile.name}.csv not found. Tried paths:`, csvFile.possiblePaths);
+      continue;
+    }
+
+    console.log(`📂 Reading ${csvFile.name} CSV from:`, csvPath);
+
+    // Parse CSV
+    const modules = parseCSV(csvPath);
+    console.log(`✅ Parsed ${modules.length} modules from ${csvFile.name}.csv`);
+
+    // Add pillar tag to each module
+    const taggedModules = modules.map(module => ({
+      ...module,
+      _sourceTag: csvFile.tag  // Add tag based on source file
+    }));
+
+    allModules = allModules.concat(taggedModules);
   }
 
-  console.log('📂 Reading CSV from:', csvPath);
+  if (allModules.length === 0) {
+    console.error('❌ No CSV files found or parsed');
+    throw new Error('No CSV files found');
+  }
 
-  // Parse CSV
-  const modules = parseCSV(csvPath);
-  console.log(`✅ Parsed ${modules.length} modules from CSV`);
+  console.log(`✅ Total modules to migrate: ${allModules.length}`);
 
   // Connect to databases
   const client = await pool.connect();
@@ -93,8 +142,14 @@ async function migrateModules() {
 
     const insertedModules = [];
 
-    for (const module of modules) {
+    for (const module of allModules) {
       try {
+        // Use source tag as the primary pillar tag
+        // If CSV has a Tags field, we can combine them, otherwise just use source tag
+        const csvTags = module['Tags'] || '';
+        const pillarTag = module._sourceTag || '';
+        const combinedTags = pillarTag; // Use pillar tag as primary identifier
+
         // Insert into PostgreSQL
         const result = await client.query(
           `INSERT INTO courses
@@ -132,7 +187,7 @@ async function migrateModules() {
             module['Grading Scheme'] || '',
             module['Terms'] || '',
             module['Professors'] || '',
-            module['Tags'] || ''
+            combinedTags  // Use pillar tag from source file
           ]
         );
 
@@ -166,6 +221,17 @@ async function migrateModules() {
     }
 
     console.log(`✅ Created ${insertedModules.length} course nodes in Neo4j`);
+
+    // Log tag distribution
+    const tagCounts = {};
+    allModules.forEach(module => {
+      const tag = module._sourceTag || 'Unknown';
+      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    });
+    console.log('📊 Module distribution by pillar:');
+    Object.entries(tagCounts).forEach(([tag, count]) => {
+      console.log(`   ${tag}: ${count} modules`);
+    });
 
     // Create prerequisite relationships
     let prereqCount = 0;

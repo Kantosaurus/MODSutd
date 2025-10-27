@@ -15,7 +15,7 @@ import {
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 
-const PILLARS = ['All', 'ISTD', 'EPD', 'ESD', 'ASD'];
+const PILLARS = ['All', 'CSD', 'EPD', 'ESD', 'ASD', 'Freshmore'];
 const TERMS = ['All', 'Term 1', 'Term 2', 'Term 3', 'Term 4', 'Term 5', 'Term 6', 'Term 7', 'Term 8'];
 
 interface Module {
@@ -66,7 +66,10 @@ export default function ModulesPage() {
   useEffect(() => {
     async function fetchCourses() {
       try {
-        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql';
+        console.log('🔍 Fetching courses from:', apiUrl);
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -76,16 +79,25 @@ export default function ModulesPage() {
           }),
         });
 
+        console.log('📡 Response status:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const result = await response.json();
+        console.log('📦 Received data:', result.data?.courses?.length || 0, 'courses');
 
         if (result.errors) {
+          console.error('GraphQL errors:', result.errors);
           throw new Error(result.errors[0].message);
         }
 
         setModules(result.data.courses || []);
       } catch (err) {
-        console.error('Error fetching courses:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch courses');
+        console.error('❌ Error fetching courses:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch courses';
+        setError(`Cannot connect to backend API. Please ensure the backend server is running. Error: ${errorMessage}`);
       } finally {
         setLoading(false);
       }
@@ -111,7 +123,7 @@ export default function ModulesPage() {
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },
     {
-      label: 'Schedule',
+      label: 'Tracks',
       href: '/dashboard/schedule',
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },
@@ -137,8 +149,8 @@ export default function ModulesPage() {
       module.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       module.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Extract pillar from tags (e.g., "ISTD" from tags field)
-    const pillar = module.tags || 'ISTD';
+    // Extract pillar from tags field (CSD, ASD, Freshmore, etc.)
+    const pillar = module.tags || '';
     const matchesPillar = selectedPillar === 'All' || pillar === selectedPillar;
 
     // Match term (terms field is like "1, 3, 5" or "1, 2, 3, 4, 5, 6, 7, 8")
@@ -147,6 +159,74 @@ export default function ModulesPage() {
 
     return matchesSearch && matchesPillar && matchesTerm;
   });
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-[#fcfbfa]">
+        <Sidebar open={open} setOpen={setOpen}>
+          <SidebarBody className="justify-between gap-10 bg-white border-r-2 border-[#111110]">
+            <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+              {open ? <Logo /> : <LogoIcon />}
+              <div className="mt-12 flex flex-col gap-3">
+                {links.map((link, idx) => (
+                  <SidebarLink key={idx} link={link} />
+                ))}
+              </div>
+            </div>
+            <div className="border-t-2 border-[#111110] pt-4">
+              <SidebarLink
+                link={{
+                  label: 'Logout',
+                  href: '/',
+                  icon: <IconLogout className="h-5 w-5 shrink-0 text-[#111110]" />,
+                }}
+              />
+            </div>
+          </SidebarBody>
+        </Sidebar>
+
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-2xl mx-auto mt-20">
+            <div className="border-4 border-red-600 bg-red-50 p-8">
+              <h1 className="text-2xl font-bold text-red-900 uppercase tracking-wider mb-4">
+                ⚠️ Backend Server Not Running
+              </h1>
+              <p className="text-red-800 mb-6 leading-relaxed">
+                {error}
+              </p>
+
+              <div className="bg-white border-2 border-red-600 p-6 mb-6">
+                <h2 className="font-bold text-red-900 uppercase tracking-wider mb-3">
+                  Quick Fix:
+                </h2>
+                <ol className="list-decimal list-inside space-y-2 text-red-900">
+                  <li>Open a terminal in the project directory</li>
+                  <li>Run: <code className="bg-red-100 px-2 py-1 font-mono text-sm">cd backend</code></li>
+                  <li>Run: <code className="bg-red-100 px-2 py-1 font-mono text-sm">npm start</code></li>
+                  <li>Wait for &ldquo;Server ready&rdquo; message</li>
+                  <li>Refresh this page</li>
+                </ol>
+              </div>
+
+              <div className="bg-yellow-50 border-2 border-yellow-600 p-4 mb-6">
+                <p className="text-yellow-900 text-sm">
+                  <strong>API URL:</strong> {process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 text-white px-6 py-3 font-bold uppercase tracking-wider hover:bg-red-700 transition-all"
+              >
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-[#fcfbfa]">

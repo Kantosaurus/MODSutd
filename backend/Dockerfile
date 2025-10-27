@@ -30,8 +30,8 @@ RUN chown -R nodejs:nodejs /app
 # Expose port
 EXPOSE 4000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check - More generous timing to allow for migration
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
   CMD node healthcheck.js
 
 # Set entrypoint

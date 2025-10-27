@@ -4,8 +4,20 @@ const { getGraphDBSession } = require('../database/graphdb');
 const courseResolvers = {
   Query: {
     courses: async () => {
-      const result = await pool.query('SELECT * FROM courses ORDER BY code');
-      return result.rows;
+      try {
+        console.log('📚 Fetching all courses from database...');
+        const result = await pool.query('SELECT * FROM courses ORDER BY code');
+        console.log(`✅ Found ${result.rows.length} courses`);
+
+        if (result.rows.length === 0) {
+          console.warn('⚠️  No courses found in database. Has migration run?');
+        }
+
+        return result.rows;
+      } catch (error) {
+        console.error('❌ Error fetching courses:', error);
+        throw new Error(`Failed to fetch courses: ${error.message}`);
+      }
     },
 
     course: async (parent, { id }) => {

@@ -1,10 +1,10 @@
 # Module Migration Script
 
-This script migrates module data from the ISTD Mods.csv file into the database.
+This script migrates module data from both the ISTD Mods.csv and Freshmore.csv files into the database.
 
 ## What it does
 
-1. **Parses the CSV file** - Reads ISTD Mods.csv and parses all module information
+1. **Parses the CSV files** - Reads both ISTD Mods.csv and Freshmore.csv and parses all module information
 2. **Inserts into PostgreSQL** - Stores module details in the `courses` table
 3. **Creates Neo4j relationships** - Sets up prerequisite and corequisite relationships
 
@@ -49,8 +49,11 @@ The script uses the following environment variables (with defaults):
 
 ```
 📚 Starting module migration...
-📂 Reading CSV from: /path/to/ISTD Mods.csv
-✅ Parsed XX modules from CSV
+📂 Reading ISTD Mods CSV from: /path/to/ISTD Mods.csv
+✅ Parsed XX modules from ISTD Mods.csv
+📂 Reading Freshmore CSV from: /path/to/Freshmore.csv
+✅ Parsed XX modules from Freshmore.csv
+✅ Total modules to migrate: XX
 💾 Inserting modules into PostgreSQL...
 ✅ Inserted XX modules into PostgreSQL
 🔗 Creating relationships in Neo4j...

@@ -15,10 +15,14 @@ import {
   IconTrash,
   IconDeviceFloppy,
   IconFileDownload,
+  IconLock,
 } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import ModuleExpandableCard from '@/components/ui/module-expandable-card';
+import PlanList from '@/components/ui/plan-list';
+import { planStorage, SavedPlan } from '@/lib/plan-storage';
 
 const GET_COURSES_QUERY = `
   query GetCourses {
@@ -29,6 +33,8 @@ const GET_COURSES_QUERY = `
       credits
       terms
       tags
+      overview
+      description
       prerequisites {
         code
       }
@@ -46,6 +52,8 @@ interface ModuleFromAPI {
   credits: number;
   terms?: string;
   tags?: string;
+  overview?: string;
+  description?: string;
   prerequisites: Array<{ code: string }>;
   corequisites: Array<{ code: string }>;
 }
@@ -59,6 +67,8 @@ interface AvailableModule {
   availableTerms: string[];
   prerequisites: string[];
   corequisites: string[];
+  overview?: string;
+  description?: string;
 }
 
 interface PlannedModule {
@@ -66,6 +76,7 @@ interface PlannedModule {
   code: string;
   name: string;
   credits: number;
+  isCompulsory?: boolean;
 }
 
 interface TermPlan {
@@ -73,6 +84,42 @@ interface TermPlan {
 }
 
 const TERMS = ['Term 1', 'Term 2', 'Term 3', 'Term 4', 'Term 5', 'Term 6', 'Term 7', 'Term 8'];
+
+// Module limits per term
+const TERM_MODULE_LIMITS: Record<string, number> = {
+  'Term 1': 5,
+  'Term 2': 5,
+  'Term 3': 4,
+  'Term 4': 4,
+  'Term 5': 5,
+  'Term 6': 5,
+  'Term 7': 5,
+  'Term 8': 5,
+};
+
+// Compulsory modules by term
+// Structure: { term: { all: [...], pillarSpecific: { CSD: [...], EPD: [...], ... } } }
+const COMPULSORY_MODULES: Record<string, { all?: string[]; pillarSpecific?: Record<string, string[]> }> = {
+  'Term 1': {
+    all: ['10.013', '10.015', '10.025', '2.001', '02.001', '03.007A'],
+  },
+  'Term 2': {
+    all: ['10.018', '10.017', '10.016', '10.026', '03.3007B'],
+  },
+  'Term 3': {
+    all: ['10.022', '2.001', '02.001'], // HASS can be 2.001 or 02.001
+  },
+  'Term 4': {
+    pillarSpecific: {
+      CSD: ['50.001', '50.002', '50.004'],
+    },
+  },
+  'Term 5': {
+    pillarSpecific: {
+      CSD: ['50.003', '50.005'],
+    },
+  },
+};
 
 // Transform API data to planner format
 const transformModuleForPlanner = (module: ModuleFromAPI): AvailableModule => {
@@ -86,11 +133,13 @@ const transformModuleForPlanner = (module: ModuleFromAPI): AvailableModule => {
     id: module.id,
     code: module.code,
     name: module.name,
-    pillar: module.tags || 'ISTD',
+    pillar: module.tags || '',
     credits: module.credits,
     availableTerms,
     prerequisites: module.prerequisites.map((p) => p.code),
     corequisites: module.corequisites.map((c) => c.code),
+    overview: module.overview,
+    description: module.description,
   };
 };
 
@@ -172,9 +221,9 @@ interface PlanConfig {
   minors: string[];
 }
 
-const PILLARS = ['ISTD', 'EPD', 'ESD', 'ASD'];
+const PILLARS = ['CSD', 'EPD', 'ESD', 'ASD'];
 const SPECIALISATIONS: Record<string, string[]> = {
-  'ISTD': [
+  'CSD': [
     'Artificial Intelligence',
     'Data Analytics',
     'Financial Technology',
@@ -191,6 +240,9 @@ const MINORS = ['Digital Humanities', 'Entrepreneurship', 'Computer Science', 'D
 
 export default function PlannerPage() {
   const [open, setOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'setup' | 'planner'>('list');
+  const [savedPlans, setSavedPlans] = useState<SavedPlan[]>([]);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [setupComplete, setSetupComplete] = useState(false);
   const [planConfig, setPlanConfig] = useState<PlanConfig | null>(null);
   const [termPlans, setTermPlans] = useState<Record<string, TermPlan>>({
@@ -208,12 +260,30 @@ export default function PlannerPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [availableModules, setAvailableModules] = useState<AvailableModule[]>([]);
   const [loading, setLoading] = useState(true);
+  const [freshmoreInitialized, setFreshmoreInitialized] = useState(false);
+
+  // Load saved plans from localStorage on mount
+  useEffect(() => {
+    const plans = planStorage.getAllPlans();
+    setSavedPlans(plans);
+  }, []);
+
+  // Auto-save plan when term plans or config changes
+  useEffect(() => {
+    if (setupComplete && planConfig && currentPlanId) {
+      planStorage.savePlan(planConfig, termPlans, undefined, currentPlanId);
+      // Refresh the saved plans list
+      setSavedPlans(planStorage.getAllPlans());
+    }
+  }, [termPlans, planConfig, setupComplete, currentPlanId]);
 
   // Fetch modules from API
   useEffect(() => {
     async function fetchModules() {
       try {
-        const response = await fetch(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/graphql';
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -226,7 +296,13 @@ export default function PlannerPage() {
         const result = await response.json();
 
         if (result.errors) {
+          console.error('GraphQL Errors:', result.errors);
           throw new Error(result.errors[0].message);
+        }
+
+        if (!result.data || !result.data.courses) {
+          console.error('No courses data in response:', result);
+          throw new Error('No courses data received');
         }
 
         const modules = result.data.courses.map(transformModuleForPlanner);
@@ -240,6 +316,58 @@ export default function PlannerPage() {
 
     fetchModules();
   }, []);
+
+  // Initialize compulsory modules when available modules are loaded and setup is complete
+  useEffect(() => {
+    if (!freshmoreInitialized && availableModules.length > 0 && setupComplete && planConfig) {
+      const newTermPlans = { ...termPlans };
+      let modulesAdded = false;
+
+      // For each compulsory term, add the compulsory modules
+      Object.entries(COMPULSORY_MODULES).forEach(([term, config]) => {
+        // Only add if the term is currently empty (avoid overwriting user changes)
+        if (newTermPlans[term].modules.length === 0) {
+          // Collect all module codes for this term
+          const moduleCodes: string[] = [];
+
+          // Add modules for all pillars
+          if (config.all) {
+            moduleCodes.push(...config.all);
+          }
+
+          // Add pillar-specific modules
+          if (config.pillarSpecific && planConfig.pillar && config.pillarSpecific[planConfig.pillar]) {
+            moduleCodes.push(...config.pillarSpecific[planConfig.pillar]);
+          }
+
+          // Add each module to the term
+          moduleCodes.forEach((code) => {
+            // Find the module in available modules
+            const foundModule = availableModules.find((m) => m.code === code);
+            if (foundModule) {
+              // Check if already added (to avoid duplicates for modules like 2.001/02.001)
+              const alreadyAdded = newTermPlans[term].modules.some((m) => m.id === foundModule.id);
+              if (!alreadyAdded) {
+                newTermPlans[term].modules.push({
+                  id: foundModule.id,
+                  code: foundModule.code,
+                  name: foundModule.name,
+                  credits: foundModule.credits,
+                  isCompulsory: true, // Mark as compulsory
+                });
+                modulesAdded = true;
+              }
+            }
+          });
+        }
+      });
+
+      if (modulesAdded) {
+        setTermPlans(newTermPlans);
+      }
+      setFreshmoreInitialized(true);
+    }
+  }, [availableModules, setupComplete, freshmoreInitialized, termPlans, planConfig]);
 
   const links = [
     {
@@ -258,7 +386,7 @@ export default function PlannerPage() {
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },
     {
-      label: 'Schedule',
+      label: 'Tracks',
       href: '/dashboard/schedule',
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },
@@ -279,9 +407,46 @@ export default function PlannerPage() {
     },
   ];
 
+  const getTermModuleLimit = (term: string): number => {
+    return TERM_MODULE_LIMITS[term] || 5;
+  };
+
+  const canAddModuleToTerm = (term: string): boolean => {
+    const currentCount = termPlans[term].modules.length;
+    const limit = getTermModuleLimit(term);
+    return currentCount < limit;
+  };
+
+  const isHASSModule = (moduleCode: string): boolean => {
+    // HASS modules have codes like "2.001", "02.001" or contain "HASS" in the code
+    return moduleCode.startsWith('2.') || moduleCode.startsWith('02.') || moduleCode.includes('HASS');
+  };
+
+  const isModuleAlreadyTaken = (moduleId: string, moduleCode: string): { taken: boolean; term?: string } => {
+    // HASS modules can be taken multiple times
+    if (isHASSModule(moduleCode)) {
+      return { taken: false };
+    }
+
+    for (const [termName, plan] of Object.entries(termPlans)) {
+      if (plan.modules.some((m) => m.id === moduleId)) {
+        return { taken: true, term: termName };
+      }
+    }
+    return { taken: false };
+  };
+
   const addModuleToTerm = (term: string, module: PlannedModule) => {
-    // Check if module is already in this term
-    if (termPlans[term].modules.some((m) => m.id === module.id)) {
+    // Check if module is already taken in any term (except HASS modules)
+    const duplicateCheck = isModuleAlreadyTaken(module.id, module.code);
+    if (duplicateCheck.taken) {
+      alert(`Cannot add ${module.code}: This module is already added to ${duplicateCheck.term}.`);
+      return;
+    }
+
+    // Check if term has reached its module limit
+    if (!canAddModuleToTerm(term)) {
+      alert(`Cannot add module: ${term} has reached its limit of ${getTermModuleLimit(term)} modules.`);
       return;
     }
 
@@ -294,6 +459,13 @@ export default function PlannerPage() {
   };
 
   const removeModuleFromTerm = (term: string, moduleId: string) => {
+    // Check if module is compulsory
+    const moduleToRemove = termPlans[term].modules.find((m) => m.id === moduleId);
+    if (moduleToRemove?.isCompulsory) {
+      alert(`Cannot remove ${moduleToRemove.code}: This is a compulsory module for your programme.`);
+      return;
+    }
+
     setTermPlans({
       ...termPlans,
       [term]: {
@@ -363,6 +535,65 @@ export default function PlannerPage() {
   const handleSetupSubmit = (config: PlanConfig) => {
     setPlanConfig(config);
     setSetupComplete(true);
+
+    // Save new plan
+    const newPlan = planStorage.savePlan(config, termPlans);
+    setCurrentPlanId(newPlan.id);
+    setSavedPlans(planStorage.getAllPlans());
+    setViewMode('planner');
+  };
+
+  const handleSelectPlan = (planId: string) => {
+    const plan = planStorage.getPlan(planId);
+    if (plan) {
+      setCurrentPlanId(planId);
+      setPlanConfig({
+        name: plan.name,
+        pillar: plan.pillar,
+        specialisation: plan.specialisation,
+        minors: plan.minors,
+      });
+      setTermPlans(plan.termPlans);
+      setSetupComplete(true);
+      setFreshmoreInitialized(true); // Skip auto-init since plan already has modules
+      setViewMode('planner');
+    }
+  };
+
+  const handleCreateNewPlan = () => {
+    setViewMode('setup');
+    setSetupComplete(false);
+    setPlanConfig(null);
+    setCurrentPlanId(null);
+    setFreshmoreInitialized(false);
+    setTermPlans({
+      'Term 1': { modules: [] },
+      'Term 2': { modules: [] },
+      'Term 3': { modules: [] },
+      'Term 4': { modules: [] },
+      'Term 5': { modules: [] },
+      'Term 6': { modules: [] },
+      'Term 7': { modules: [] },
+      'Term 8': { modules: [] },
+    });
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    planStorage.deletePlan(planId);
+    setSavedPlans(planStorage.getAllPlans());
+
+    // If deleting current plan, go back to list
+    if (planId === currentPlanId) {
+      handleBackToList();
+    }
+  };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setSetupComplete(false);
+    setCurrentPlanId(null);
+    setPlanConfig(null);
+    setFreshmoreInitialized(false);
   };
 
   const filteredModules = selectedTerm ? availableModules.filter((module) => {
@@ -373,8 +604,20 @@ export default function PlannerPage() {
     return matchesSearch && isAvailableInTerm;
   }) : [];
 
-  // Show setup form if not completed
-  if (!setupComplete) {
+  // Show loading state while fetching modules
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#fcfbfa]">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#111110] border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+          <p className="mt-4 text-[#111110] font-bold uppercase tracking-wider">Loading modules...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show plan list view
+  if (viewMode === 'list') {
     return (
       <div className="flex h-screen w-full overflow-hidden bg-[#fcfbfa]">
         <Sidebar open={open} setOpen={setOpen}>
@@ -398,7 +641,54 @@ export default function PlannerPage() {
             </div>
           </SidebarBody>
         </Sidebar>
-        <SetupForm onSubmit={handleSetupSubmit} />
+        <div className="flex-1 overflow-y-auto">
+          <PlanList
+            plans={savedPlans}
+            onSelectPlan={handleSelectPlan}
+            onCreateNew={handleCreateNewPlan}
+            onDeletePlan={handleDeletePlan}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show setup form for new plan
+  if (viewMode === 'setup' || !setupComplete) {
+    return (
+      <div className="flex h-screen w-full overflow-hidden bg-[#fcfbfa]">
+        <Sidebar open={open} setOpen={setOpen}>
+          <SidebarBody className="justify-between gap-10 bg-white border-r-2 border-[#111110]">
+            <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
+              {open ? <Logo /> : <LogoIcon />}
+              <div className="mt-12 flex flex-col gap-3">
+                {links.map((link, idx) => (
+                  <SidebarLink key={idx} link={link} />
+                ))}
+              </div>
+            </div>
+            <div className="border-t-2 border-[#111110] pt-4">
+              <SidebarLink
+                link={{
+                  label: 'Logout',
+                  href: '/',
+                  icon: <IconLogout className="h-5 w-5 shrink-0 text-[#111110]" />,
+                }}
+              />
+            </div>
+          </SidebarBody>
+        </Sidebar>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-8">
+            <button
+              onClick={handleBackToList}
+              className="mb-6 px-4 py-2 border-2 border-[#111110] text-[#111110] font-bold uppercase text-xs tracking-wider hover:bg-[#111110] hover:text-white transition-all"
+            >
+              ← Back to Plans
+            </button>
+          </div>
+          <SetupForm onSubmit={handleSetupSubmit} />
+        </div>
       </div>
     );
   }
@@ -437,11 +727,20 @@ export default function PlannerPage() {
         {/* Header */}
         <div className="border-b-2 border-[#111110] bg-white px-8 py-6">
           <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-[#111110] uppercase tracking-[0.1em]">
-                {planConfig?.name || 'Module Planner'}
-              </h1>
-              <p className="text-[#111110] opacity-70 mt-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-2">
+                <button
+                  onClick={handleBackToList}
+                  className="px-3 py-2 border-2 border-[#111110] text-[#111110] font-bold uppercase text-xs tracking-wider hover:bg-[#111110] hover:text-white transition-all"
+                  title="Back to Plans"
+                >
+                  ← Back
+                </button>
+                <h1 className="text-3xl font-bold text-[#111110] uppercase tracking-[0.1em]">
+                  {savedPlans.find(p => p.id === currentPlanId)?.name || 'Module Planner'}
+                </h1>
+              </div>
+              <p className="text-[#111110] opacity-70">
                 Plan your modules across terms
               </p>
             </div>
@@ -496,9 +795,40 @@ export default function PlannerPage() {
 
           {/* Legend */}
           <div className="bg-white border-2 border-[#111110] p-4 mb-8">
-            <p className="text-sm text-[#111110] font-semibold">
+            <p className="text-sm text-[#111110] font-semibold mb-2">
               <span className="font-bold uppercase tracking-wider">Note:</span> Click on any term box (Term 1-8) in the calendar below to add or manage modules for that term.
             </p>
+            <div className="mt-3 pt-3 border-t border-[#111110]">
+              <p className="text-xs text-[#111110] font-bold uppercase tracking-wider mb-2">Module Limits:</p>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span className="px-3 py-1.5 bg-blue-50 border border-blue-300 text-blue-900 font-semibold">
+                  Terms 1-2, 5-8: Max 5 modules
+                </span>
+                <span className="px-3 py-1.5 bg-amber-50 border border-amber-300 text-amber-900 font-semibold">
+                  Terms 3-4: Max 4 modules
+                </span>
+              </div>
+            </div>
+            {planConfig && planConfig.pillar === 'CSD' && (
+              <div className="mt-3 pt-3 border-t border-[#111110]">
+                <p className="text-xs text-[#111110] font-bold uppercase tracking-wider mb-2">CSD Compulsory Modules:</p>
+                <div className="space-y-1 text-xs text-[#111110]">
+                  <p><span className="font-semibold">Term 4:</span> 50.001, 50.002, 50.004 (auto-populated)</p>
+                  <p><span className="font-semibold">Term 5:</span> 50.003, 50.005 (auto-populated)</p>
+                </div>
+              </div>
+            )}
+            <div className="mt-3 pt-3 border-t border-[#111110]">
+              <p className="text-xs text-[#111110] font-semibold mb-2">
+                <span className="font-bold">HASS modules</span> are available for selection in Terms 4-10
+              </p>
+              <div className="mt-2 flex items-start gap-2 text-xs text-[#111110]">
+                <span className="text-blue-700 font-bold shrink-0">★</span>
+                <p className="leading-snug">
+                  <span className="font-semibold">Compulsory modules</span> are marked with a star and cannot be removed from your plan.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Academic Calendar */}
@@ -568,6 +898,7 @@ export default function PlannerPage() {
                       moduleCount={isPlannableTerm && cell ? termPlans[cell.name].modules.length : 0}
                       credits={isPlannableTerm && cell ? getTermCredits(cell.name) : 0}
                       modules={isPlannableTerm && cell ? termPlans[cell.name].modules : undefined}
+                      moduleLimit={isPlannableTerm && cell ? getTermModuleLimit(cell.name) : 5}
                     />
                   );
                 })}
@@ -605,13 +936,37 @@ export default function PlannerPage() {
                 </button>
               </div>
 
+              {/* Module Limit Info */}
+              <div className={cn(
+                "mt-3 p-3 border-2 text-sm font-semibold",
+                canAddModuleToTerm(selectedTerm)
+                  ? "border-blue-500 bg-blue-50 text-blue-900"
+                  : "border-red-500 bg-red-50 text-red-900"
+              )}>
+                <div className="flex items-center justify-between">
+                  <span>
+                    {termPlans[selectedTerm].modules.length}/{getTermModuleLimit(selectedTerm)} Modules
+                  </span>
+                  {canAddModuleToTerm(selectedTerm) ? (
+                    <span className="text-xs">
+                      {getTermModuleLimit(selectedTerm) - termPlans[selectedTerm].modules.length} slots remaining
+                    </span>
+                  ) : (
+                    <span className="text-xs flex items-center gap-1">
+                      <span>⚠</span>
+                      Limit reached
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* Search */}
               <input
                 type="text"
                 placeholder="SEARCH MODULES..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-[#111110] focus:outline-none focus:border-[#dcbd8e] bg-white text-[#111110] uppercase tracking-wider text-sm font-semibold placeholder:text-[#111110] placeholder:opacity-50"
+                className="w-full px-4 py-3 border-2 border-[#111110] focus:outline-none focus:border-[#dcbd8e] bg-white text-[#111110] uppercase tracking-wider text-sm font-semibold placeholder:text-[#111110] placeholder:opacity-50 mt-3"
               />
             </div>
 
@@ -620,28 +975,51 @@ export default function PlannerPage() {
               <div className="p-6 border-b-2 border-[#111110] bg-[#fcfbfa]">
                 <h3 className="text-sm font-bold text-[#111110] uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
                   <span>Current Modules</span>
-                  <span className="px-2 py-1 bg-[#111110] text-white text-xs rounded-full">
-                    {termPlans[selectedTerm].modules.length}
+                  <span className={cn(
+                    "px-2 py-1 text-xs rounded-full",
+                    canAddModuleToTerm(selectedTerm)
+                      ? "bg-[#111110] text-white"
+                      : "bg-red-600 text-white"
+                  )}>
+                    {termPlans[selectedTerm].modules.length}/{getTermModuleLimit(selectedTerm)}
                   </span>
                 </h3>
                 <div className="space-y-2">
                   {termPlans[selectedTerm].modules.map((module) => (
                     <div
                       key={module.id}
-                      className="border-2 border-[#111110] p-3 bg-white group hover:bg-[#fcfbfa] transition-colors flex justify-between items-center"
+                      className={cn(
+                        "border-2 p-3 bg-white transition-colors flex justify-between items-center",
+                        module.isCompulsory
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-[#111110] group hover:bg-[#fcfbfa]"
+                      )}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em]">
-                          {module.code}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-[#111110] uppercase tracking-[0.15em]">
+                            {module.code}
+                          </p>
+                          {module.isCompulsory && (
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-[9px] font-bold uppercase rounded">
+                              Compulsory
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-[#111110] mt-1 truncate">{module.name}</p>
                       </div>
-                      <button
-                        onClick={() => removeModuleFromTerm(selectedTerm, module.id)}
-                        className="ml-3 text-[#111110] hover:text-red-600 transition-colors"
-                      >
-                        <IconTrash className="h-4 w-4" />
-                      </button>
+                      {!module.isCompulsory ? (
+                        <button
+                          onClick={() => removeModuleFromTerm(selectedTerm, module.id)}
+                          className="ml-3 text-[#111110] hover:text-red-600 transition-colors"
+                        >
+                          <IconTrash className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <div className="ml-3 text-blue-600 opacity-50" title="Compulsory module cannot be removed">
+                          <IconLock className="h-4 w-4" />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -650,130 +1028,39 @@ export default function PlannerPage() {
 
             {/* Module List */}
             <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-3">
-                {filteredModules.map((module) => {
-                  const isInCurrentTerm = termPlans[selectedTerm].modules.some(
-                    (m) => m.id === module.id
-                  );
-                  const prereqCheck = checkPrerequisites(module, selectedTerm);
-                  const coreqCheck = checkCorequisites(module, selectedTerm);
-                  const canAdd = prereqCheck.met && coreqCheck.met && !isInCurrentTerm;
+              {filteredModules.length > 0 ? (
+                <ModuleExpandableCard
+                  modules={filteredModules.filter((module) => {
+                    const isInCurrentTerm = termPlans[selectedTerm].modules.some(
+                      (m) => m.id === module.id
+                    );
+                    return !isInCurrentTerm; // Don't show already added modules
+                  })}
+                  onAddModule={(module) => {
+                    const prereqCheck = checkPrerequisites(module, selectedTerm);
+                    const coreqCheck = checkCorequisites(module, selectedTerm);
 
-                  return (
-                    <div
-                      key={module.id}
-                      className={cn(
-                        'border-2 border-[#111110] p-4 transition-all',
-                        isInCurrentTerm
-                          ? 'bg-[#dcbd8e] opacity-60'
-                          : canAdd
-                          ? 'bg-white hover:bg-[#fcfbfa] cursor-pointer hover:shadow-md'
-                          : 'bg-gray-100 opacity-75'
-                      )}
-                      onClick={() => {
-                        if (canAdd) {
-                          addModuleToTerm(selectedTerm, {
-                            id: module.id,
-                            code: module.code,
-                            name: module.name,
-                            credits: module.credits,
-                          });
-                        }
-                      }}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-bold text-[#111110] uppercase tracking-[0.15em]">
-                              {module.code}
-                            </p>
-                            {isInCurrentTerm && (
-                              <span className="px-2 py-0.5 bg-[#111110] text-white text-xs font-bold uppercase">
-                                Added
-                              </span>
-                            )}
-                            {!prereqCheck.met && (
-                              <span className="px-2 py-0.5 bg-red-600 text-white text-xs font-bold uppercase">
-                                Prerequisites Missing
-                              </span>
-                            )}
-                            {prereqCheck.met && !coreqCheck.met && (
-                              <span className="px-2 py-0.5 bg-orange-600 text-white text-xs font-bold uppercase">
-                                Corequisites Missing
-                              </span>
-                            )}
-                            {canAdd && (
-                              <span className="px-2 py-0.5 bg-green-600 text-white text-xs font-bold uppercase">
-                                Available
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-[#111110] font-semibold">{module.name}</p>
-                        </div>
-                        <span className="text-xs font-bold text-[#111110] ml-3">
-                          {module.credits} CR
-                        </span>
-                      </div>
+                    if (!prereqCheck.met) {
+                      alert(`Prerequisites not met: ${prereqCheck.unmetPrereqs.join(', ')}`);
+                      return;
+                    }
 
-                      {/* Prerequisites */}
-                      {module.prerequisites.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-[#111110]">
-                          <p className="text-xs font-bold text-[#111110] uppercase tracking-wider mb-2">
-                            Prerequisites:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {module.prerequisites.map((prereq) => {
-                              const isMet = !prereqCheck.unmetPrereqs.includes(prereq);
-                              return (
-                                <span
-                                  key={prereq}
-                                  className={cn(
-                                    'px-2 py-1 text-xs font-semibold border',
-                                    isMet
-                                      ? 'bg-green-100 text-green-800 border-green-300'
-                                      : 'bg-red-100 text-red-800 border-red-300'
-                                  )}
-                                >
-                                  {prereq} {isMet ? '✓' : '✗'}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                    if (!coreqCheck.met) {
+                      alert(`Corequisites not met: ${coreqCheck.unmetCoreqs.join(', ')}`);
+                      return;
+                    }
 
-                      {/* Corequisites */}
-                      {module.corequisites.length > 0 && (
-                        <div className="mt-3 pt-3 border-t border-[#111110]">
-                          <p className="text-xs font-bold text-[#111110] uppercase tracking-wider mb-2">
-                            Corequisites:
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {module.corequisites.map((coreq) => {
-                              const isMet = !coreqCheck.unmetCoreqs.includes(coreq);
-                              return (
-                                <span
-                                  key={coreq}
-                                  className={cn(
-                                    'px-2 py-1 text-xs font-semibold border',
-                                    isMet
-                                      ? 'bg-green-100 text-green-800 border-green-300'
-                                      : 'bg-orange-100 text-orange-800 border-orange-300'
-                                  )}
-                                >
-                                  {coreq} {isMet ? '✓' : '✗'}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {filteredModules.length === 0 && (
+                    addModuleToTerm(selectedTerm, {
+                      id: module.id,
+                      code: module.code,
+                      name: module.name,
+                      credits: module.credits,
+                    });
+                  }}
+                  showAddButton={true}
+                  term={selectedTerm}
+                />
+              ) : (
                 <div className="text-center py-12">
                   <p className="text-[#111110] font-bold uppercase tracking-wider">No modules available</p>
                   <p className="text-[#111110] opacity-70 text-sm mt-2">
@@ -876,7 +1163,7 @@ const SetupForm = ({ onSubmit }: { onSubmit: (config: PlanConfig) => void }) => 
                 type="text"
                 value={planName}
                 onChange={(e) => setPlanName(e.target.value)}
-                placeholder="e.g., My ISTD Journey"
+                placeholder="e.g., My CSD Journey"
                 required
                 className="w-full px-4 py-3 border-2 border-[#111110] focus:outline-none focus:border-[#dcbd8e] bg-white text-[#111110] font-semibold placeholder:text-[#111110] placeholder:opacity-50"
               />
@@ -1017,6 +1304,7 @@ const TermCalendarBox = ({
   moduleCount,
   credits,
   modules,
+  moduleLimit,
 }: {
   term: TermBox | null;
   isLast: boolean;
@@ -1024,8 +1312,10 @@ const TermCalendarBox = ({
   moduleCount: number;
   credits: number;
   modules?: PlannedModule[];
+  moduleLimit?: number;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const isAtLimit = moduleLimit !== undefined && moduleCount >= moduleLimit;
 
   if (!term) {
     return (
@@ -1167,10 +1457,20 @@ const TermCalendarBox = ({
                 key={module.id}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-white/80 backdrop-blur-sm border-2 border-slate-700 px-2 py-1 text-[10px] font-bold text-slate-800 uppercase tracking-wider shadow-sm"
+                className={cn(
+                  "backdrop-blur-sm border-2 px-2 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm",
+                  module.isCompulsory
+                    ? "bg-blue-100/90 border-blue-600 text-blue-900"
+                    : "bg-white/80 border-slate-700 text-slate-800"
+                )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="truncate">{module.code}</span>
+                  <div className="flex items-center gap-1 min-w-0">
+                    <span className="truncate">{module.code}</span>
+                    {module.isCompulsory && (
+                      <span className="text-blue-700 shrink-0" title="Compulsory">★</span>
+                    )}
+                  </div>
                   <span className="text-[9px] opacity-70 shrink-0">{module.credits}CR</span>
                 </div>
                 <div className="text-[9px] font-normal normal-case opacity-80 truncate mt-0.5">
@@ -1190,14 +1490,31 @@ const TermCalendarBox = ({
             className="mt-auto pt-4"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="font-semibold text-slate-700">
-                {moduleCount} {moduleCount === 1 ? 'Module' : 'Modules'}
+              <span className={cn(
+                "font-semibold",
+                isAtLimit ? "text-red-700" : "text-slate-700"
+              )}>
+                {moduleLimit !== undefined
+                  ? `${moduleCount}/${moduleLimit} ${moduleCount === 1 ? 'Module' : 'Modules'}`
+                  : `${moduleCount} ${moduleCount === 1 ? 'Module' : 'Modules'}`
+                }
               </span>
               <span className="font-bold text-slate-800">
                 {credits} Credits
               </span>
             </div>
-            {isHovered && (
+            {isAtLimit && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2 }}
+                className="mt-2 text-xs font-semibold text-red-600 flex items-center gap-1"
+              >
+                <span className="text-red-700">⚠</span>
+                Limit reached
+              </motion.div>
+            )}
+            {!isAtLimit && isHovered && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}

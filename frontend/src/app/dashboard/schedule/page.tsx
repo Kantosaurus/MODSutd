@@ -89,7 +89,7 @@ export default function SchedulePage() {
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },
     {
-      label: 'Schedule',
+      label: 'Tracks',
       href: '/dashboard/schedule',
       icon: <IconCalendar className="h-5 w-5 shrink-0 text-[#111110]" />,
     },

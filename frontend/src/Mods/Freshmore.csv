@@ -1,0 +1,155 @@
+﻿Mod number,Mod name,Overview,Pre-Requisites,Co-requisites,Learning Objectives,Measureable Outcomes,Topics Covered,Textbook(s) and/or other required material,Delivery Format,Grading Scheme,Terms,Credits,Professors,Tags
+10.013,Modelling and Analysis,"The main objective of this course is to provide students firm foundations of single variable calculus so that they can apply calculus to model, solve and analyse applied math problems. It aims to motivate students on the importance of calculus through a plethora of applications in engineering, physical and biological sciences, computer science, finance, economics, probability and statistics and other topics. On top of the basic concepts, techniques and applications of two branches of calculus – differentiation and integration, students will also learn to use simple software to implement numerical methods in calculus.",,,"At the end of the term, students will be able to:
+
+    Explain the geometrical and physical meaning of derivatives.
+    Compute derivatives using the rules of calculus.
+    Apply derivatives and calculus theorems to sketch graphs, find maxima, minima and accurate numerical approximations in problems coming from engineering and science.
+    Explain the Fundamental Theorem of Calculus.
+    Compute exact integrals by integration techniques.
+    Apply numerical integrations to approximate definite integrals.
+    Use integral calculus to solve basic differential equations.
+    Use integral calculus to solve for important quantities that can be modelled by Riemann sums, such as areas, volumes, arc lengths, center of mass, moment of inertia, etc.
+    Analyse the solutions obtained by calculus based on the context.
+    Apply Excel to implement numerical methods to solve problems coming from engineering and science.",,,,6-0-6,"Students are graded based on exam test results, quizzes, class participations, homework, and team-based design projects (eg. 1D and 2D projects etc).",1,12,,Freshmore Core
+10.015,Physical World,"Emphasises on providing students with the ability to understand and explain the inner mechanism of the physical world based on the principles of mechanics and thermodynamics. It aims to help students appreciate the beauty of physics and enable them to apply key concepts learnt to evaluate and address physics-based problems to make a positive impact on the world. By using concepts established through simplified mathematical models, reverse engineering case studies and experiential learning through hands-on demonstrations, connections between physics concepts and theoretical models are reinforced with practice.",,,"The course introduces the concepts in progressive and integrated manner:
+
+    Linear motion kinematics
+    Newton’s 3 laws of motion and dynamics of system
+    Circular motion kinematics and dynamics
+    Rotational motion and torque on rigid body
+    Work done, general concepts of energy and conservative force
+    Center of mass, linear and angular momentum.
+    Conservation laws of energy, linear momentum, and angular momentum
+    General ideas about thermodynamics such as temperature, heat and heat cycle, entropy and simple engines",,,," 5-0-7 (two 2.5 hours cohort sessions) *
+
+ 
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.
+
+Prior to AY2020, it was 10.002 Physics I","Students are graded based on exam test results, class participations, home works, and team-based design projects.",1,12,,Freshmore Core
+2.001,"Social Science: Understanding Behaviour, Culture & Society (HASS)","","","","Summarize and appraise critically the content of assigned readings. Interpret the various, multi-layered meanings of classic texts by recognizing and assessing previous interpretations and developing new ones. Identify meaningful connections between texts from different periods and places. Effectively communicate arguments in writing and speech.","Regular short responses ask students to engage critically with the week's readings. A final paper tests students' ability to understand and compare two or more classic texts and to put forward their own synthetic interpretation of these works. A midterm writing exercise assesses students' ability to understand and creatively interpret the texts studied. Throughout the semester, assignments and class participation evaluate students' ability to communicate their thoughts and arguments in writing and speech.","","","","","1,3,4,5,6,7,8,9,10","","12","","Freshmore Core"
+03.007A,Innovating with Design and AI-1 (IDeA-1),"Innovating with Design and AI (IDeA-1) introduces students to the early stages of human-centred innovation through the integration of design thinking and artificial intelligence techniques.
+
+ 
+
+Students will learn to conduct empathy-driven user research and formulate problem statements for a real-world challenge. Emphasizing creative ideation and divergent thinking, the course guides students in generating and evaluating novel ideas using both traditional methods and AI tools.
+
+ 
+
+At the end of the course, students will present a low-fidelity prototype to demonstrate their ability to translate insights into thoughtful design concepts—laying the foundation for more advanced prototyping and testing in the course IDeA-II in term 2.",,,"By the end of the course, students will be able to:
+
+    Identify stakeholders and their relationships in a complex system
+    Frame problem statements and opportunity areas
+    Generate and evaluate diverse and creative solution ideas using traditional and AI-augmented techniques
+    Plan and execute effective teamwork
+    Formulate and produce effective communication with multi-media content
+    Gain proficiency in using AI tools to accelerate design","
+    Students conduct and communicate user and contextual research
+    Students craft and iterate “How Might We” statements based on user research insights
+    Students submit distinct, creative concept directions
+    Students demonstrate collaboration and contribution to group tasks
+    Students create low-fidelity prototypes",,,"5-0-7
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students will be graded based on class activities, design reviews, homework, teamwork and class participation.",1,6,,Freshmore Core
+10.018,Modelling Space and Systems,"Provides the knowledge on how to model real life problems by casting them against a rigorous modelling framework on the topics of multivariable calculus and linear algebra. This course builds upon the Term 1 course, Modelling and Analysis, and will cover the following topics: differentiation and integration in multiple dimensions, optimization, line integrals, linear maps, eigenvalues and eigenvectors. By working in group projects and writing MATLAB codes, students will appreciate the various topics and connections between mathematics and physics, computer science, probability, statistics and other topics.
+
+ 
+
+In the second half of the course, students will cover linear algebra, which includes linear maps, idea of a basis, subspaces, eigenvalues, and eigenvectors. They will see how these topics tie in with modern day applications, and will also see some pitfalls for “standard algorithms” if they are applied blindly out of the box. Students will appreciate the various topics and connections between mathematics and physics, computer science, probability, statistics, and other topics.",10.013,,"
+    Examine functions of several variables via partial differentiation and directional derivatives.
+    Compute integrals of functions of several variables and vector fields.
+    Apply the concepts of row reduction, rank, matrix inverse, determinant, linear independence to find solutions to linear systems Ax=b exactly or approximately.
+    Explain the geometric meaning of matrices, eigenvalues and eigenvectors.",,,,One 60 minutes online lecture. Two 150 minutes cohort classes per week,"Grades will be based on homework, 1D project, participation, and exams.",2,12,,Freshmore Core
+10.017,Technological World,"Provides students with a strong physics foundation for a holistic perspective of current and emerging technologies in modern society. The working principles of various products will be used to explain electromagnetism and its translation to circuit analysis and product design. Quantum mechanics is introduced to better appreciate emerging applications in quantum engineering. This course aims to cultivate strong scientific knowledge and engineering thinking capabilities in students, skills which are important for technological design and innovation.",,,"The course aims to cultivate students’ ability to:
+
+    Describe the working principle of various technologies based on the concept of electromagnetism and quantum physics.
+    Compute resultant electric field and potential from charged objects with simple geometry using Coulomb’s Law, Gauss’ Law and the superposition principle.
+    Compute resultant magnetic field generated by electric current sources with simple geometry using Biot-Savart Law, Ampere’s Law and the superposition principle.
+    Apply Faraday’s Law to determine the magnitude and direction of an induced electric field and current.
+    Apply Ohm’s Law and Kirchoff’s Law in simple circuit analysis, including resistive network, RC, RL, LC and RLC circuit.
+    Describe the properties and the mathematical expression of an electromagnetic wave.
+    Explain and apply the concept of wave-particle duality, interference, indeterminacy principle, quantum states, quantum operators, quantum measurements and some of their fundamental consequences.
+    Describe current and possible future quantum technologies (computation, simulation, communication, precision measurement).",,,,"5-0-7 (two 2.5 hours cohort sessions)
+
+ 
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students are graded based on progressive quizzes, mid-term and final exams, class participations, weekly homework, and team-based design projects.",2,12,,Freshmore Core
+10.016,Science for a Sustainable World,"This course focuses on the importance of sustainable development by creating awareness of climate change and the human impact on the environment. Based on the Sustainable Development Goals (SDGs) from the United Nations, this course will address issues and challenges related to sustainability in four main areas: green materials, clean water, sustainable energy, and biodiversity. Emphasis is placed on the knowledge of science and engineering approaches towards achieving sustainable development. This course aims to enhance students’ critical thinking skills in analysing strategies based on scientific facts and current technologies.",,,"
+    Recognise the human impact on the local and global environment and the need for sustainable development as well as its current challenges.
+    Identify the physical and chemical properties of materials intended for sustainable product design, the product’s life cycle assessment and its impact on the environment.
+    Explain the fundamental engineering, chemical and biological principles in wastewater treatment and its energy footprint.
+    Understand the need for renewable energy for sustainable development, and the science behind emerging technologies of renewable energy sources.
+    Evaluate how human activities impact the land and sea, and examine current methods for improving the declining state of biodiversity.",,,,"5-0-7 (two 2.5 hours cohort sessions). The course will also have guest lectures and flipped classroom videos for some weeks but not for all the 13 weeks.
+
+ 
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students will be graded based on class participation, online quizzes, group projects related to selected SDGs, homework, team-based design projects, and final examination.",2,12,,Freshmore Core
+10.026,Design Computation,"This course provides an introduction to programming for students with little or no prior experience, with a special focus on design applications. It equips students with essential design computing skills that will support their studies across all pillars at SUTD. Students will explore both visual programming and Python programming and through hands-on exercises and projects, apply these skills to creative problem-solving and design exploration.","10.025, 03.3007A",03.3007B,,,,,"5-0-7 (two 2.5 hours cohort sessions)
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students are graded based on regular coursework, individual and group assignments and a final exam.",2,6,,Freshmore Core
+03.3007B,Innovating with Design and AI-2 (IDeA-2),"Innovating with Design and AI (IDeA-2) builds upon the foundations established in IDeA-1, guiding students through the realisation and refinement of their design concepts.
+
+ 
+
+Students will translate prior user research and ideation into functional design solutions that address real-world challenges. Emphasizing iterative development, the course introduces practical tools for rapid prototyping and integrates AI to support testing, evaluation, and feedback loops.
+
+ 
+
+By the end of the course, students will deliver a functional prototype that demonstrates both technical feasibility and user-centred design—preparing them for advanced implementation and deployment in subsequent project-based courses.",03.3007A,,"By the end of the course, students will be able to:
+
+    Translate user insights into clear design requirements
+    Define and conduct subsystem performance testing
+    Refine and integrate subsystems into functional prototypes
+    Plan and execute effective teamwork
+    Formulate and produce effective communication with multi-media content
+    Gain proficiency in using AI tools to accelerate design","
+    Students set clear and achievable design targets based on identified user needs
+    Students align prototyping objectives with a structured testing plan
+    Students integrate software, electrical, and mechanical subsystems into a high-fidelity functional design
+    Students demonstrate collaboration
+    Students advance 3D modelling skills to create a high-fidelity virtual site model
+    Students demonstrate effective use of AI tools during ideation and prototyping",,,"5-0-7
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students will be graded based on class activities, design reviews, homework, teamwork, class participation, and final prototypes.",2,6,,Freshmore Core
+10.022,Modelling Uncertainty,"Uncertainty appears everywhere in life, arising naturally in science, engineering, design, and humanities. Probability and statistics are two powerful and complementary ways to explain, forecast, and visualise uncertainty. Probability uses knowledge of a system’s behaviour to predict its future outcomes, while statistics analyses data from past outcomes to model a system’s behaviour. Probability and statistics are applied in virtually all industries that govern modern society; they are particularly important in disciplines including ﴾but not limited to﴿ finance, big data, artificial intelligence and machine learning. In this course, we will introduce the fundamentals of probability and statistics through real life problems and software. Students will complete projects related to applications such as climate adaptation, pharmaceutical testing, vaccine distribution, and product safety assurance.",10.018,,"At the end of the term, students will be able to:
+
+    Understand the basics of probability, such as laws of probability, independence, conditional probability, common distributions, random variables and common operations on them
+    Develop and evaluate simple probabilistic models for a variety of situations
+     Apply the central limit theorem
+    Examine data, and use tools to visualize data and uncover relationships
+    Compute point estimates and construct confidence intervals from a data sample
+    Perform hypothesis tests
+    Build regression models and estimate their parameters",,,,"5-0-7
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Students are graded based on exam test results, class participations, homework, and team-based design projects (eg. 1D and 2D projects etc).",3,12,,Freshmore Core
+10.019,Science and Technology for Healthcare ,"Focuses on the basic concepts in chemistry and biology that are important for the understanding and solving of healthcare problems in Singapore. Using case studies, leading chronic conditions (e.g. cancer and diabetes) will be studied throughout the term. Major topics covered by this course include the life of a cell, DNA, genes and organ systems. Function and regulation between healthy and diseased states are compared. The course also introduces emerging technologies to show the advancement of our understanding of disease conditions and their respective treatments. Importance of public health is explored to appreciate healthcare at the community level.",,,"
+    Apply fundamental concepts in molecular biology (DNA and genes), cell biology and human physiology to compare and contrast function and regulation in the healthy versus diseased states.
+    Apply fundamental concepts of classical and modern genetics towards the understanding of the patterns of human inheritance and clinical manifestations of genetic diseases.
+    Interpret and analyze common experimental data (both qualitative and quantitative) derived from molecular biology and genetic tests.
+    Discuss and synthesize factors that need to be considered in a typical drug design and development process.",,,," 5-0-7*
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","Final Exam - 30%,
+Quizzes - 15%,
+Homework, Problem Sets and online MCQs - 25%, Class Participation: Lecture clickers &  cohort class worksheets - 10%,
+Group Project (1D Designette) - 10%,
+Group Project (2D Designette) - 10%",3,12,Tan Mei Xuan,Freshmore Elective
+10.023,Designing Energy Systems,"This course teaches physical and design concepts in energy related products and systems, such as lighting, mobile phones, and photovoltaic systems. Students will apply reverse engineering, redesigning, data analysis, modelling and simulations to these systems. In this course, students will be required to synthesize innovative solutions to real world problems.",,,"At the end of the course, students should be able to:
+
+    Use physical laws and quantitative analysis to evaluate limitations and performance of heat management and energy transformation systems
+    Execute experimentation, reverse engineering, redesigning, and data analysis on energy-related products and energy systems
+    Modify and design energy-related products and photovoltaics systems using design principles, simulations and data-driven approaches",,,,"5-0-7*
+
+*The first number represents the number of hours per week assigned for lectures, recitations and cohort classroom study. The second number represents the number of hours per week assigned for labs, design, or field work. The third number represents the number of hours per week assigned for independent study.","
+Midterm 1 - 20%,
+Midterm 2 - 20%,
+Problem Sets - 10%,
+Hands on Activities (3) - 15%
+In-class participation - 5%
+Design Project (Designette: 1D and 2D) - 30%",3,12,Lee Chee Huei,Freshmore Elective
+10.024,Spatial Design World,"	
+
+Spatial Design World integrates 3D scanning, parametric modelling, AI-driven design exploration, and digital fabrication in a hands-on curriculum that strengthens students’ abilities in both 2D and 3D representation. Emphasis is placed on developing high-quality drawing skills and workflows that leverage advanced software tools. By weaving together orthographic drawings, axonometric illustrations, and emerging AI solutions, students learn to document, analyse, and transform physical spaces with precision and creativity.
+
+ 
+
+Participants tackle progressively complex tasks, from conceptual planning to prototyping, while refining presentations through data-driven simulations and digital fabrication techniques such as 3D printing. They orchestrate efficient workflows that blend analog and digital methods, gaining technical fluency and a deep understanding of foundational design principles like scale, proportion, and spatial hierarchy. These experiences encourage holistic problem-solving, helping students confidently integrate state-of-the-art technologies into their spatial design processes.",,,,,,,,,3,12,Freshmore Elective,
